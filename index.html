@@ -2,13 +2,13 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>สารคดีสัตว์โลก</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Prompt', sans-serif; }
+        body { font-family: 'Prompt', sans-serif; -webkit-tap-highlight-color: transparent; }
         .modal-animate { animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.95); }
@@ -31,21 +31,23 @@
 
         /* --- 3D Animated Card Effect --- */
         .card-scene {
-            /* กำหนดระยะความลึก */
             perspective: 1500px; 
+            position: relative;
+            width: 100%;
+            padding-bottom: 140%; /* Aspect Ratio */
+            cursor: pointer;
         }
         
         .card-object {
-            position: relative;
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
-            /* ทำให้ลูกๆ อยู่ในปริภูมิ 3 มิติ */
             transform-style: preserve-3d;
-            transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: transform 0.1s; /* Smooth follow cursor */
         }
         
         .card-scene:not(:hover) .card-object {
-            /* คืนค่าอย่างนุ่มนวลเมื่อเอาเมาส์ออก */
             transition: transform 0.5s ease-out;
         }
         
@@ -55,13 +57,11 @@
             background-color: #1f2937;
             border-radius: 0.75rem;
             border: 1px solid #374151;
-            /* เงาฐาน */
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
         }
         
         .card-scene:hover .card-bg {
-            /* เอฟเฟกต์เรืองแสง (Glow) เมื่อ Hover */
             border-color: #34d399; 
             box-shadow: 0 15px 25px -5px rgba(16, 185, 129, 0.4), inset 0 0 15px rgba(16, 185, 129, 0.2);
         }
@@ -69,13 +69,12 @@
         .card-content-layer {
             position: absolute;
             inset: 0;
-            /* ดันภาพและข้อความให้ลอยขึ้นมาข้างหน้า */
-            transform: translateZ(30px); 
+            transform: translateZ(20px); 
             border-radius: 0.75rem;
             overflow: hidden;
             backface-visibility: hidden;
             box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
-            /* ตัดขอบภาพไม่ให้ทะลุออก */
+            /* Fix border radius clipping in webkit */
             -webkit-mask-image: -webkit-radial-gradient(white, black);
         }
         
@@ -83,21 +82,8 @@
             position: absolute;
             top: 0.5rem;
             right: 0.5rem;
-            /* ดันปุ่มหัวใจให้ลอยสูงที่สุด */
-            transform: translateZ(55px); 
+            transform: translateZ(40px); 
             z-index: 20;
-        }
-        
-        .card-glare {
-            position: absolute;
-            inset: 0;
-            border-radius: 0.75rem;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s;
-            /* แสงสะท้อนอยู่เหนือรูปนิดหน่อย */
-            transform: translateZ(32px); 
-            mix-blend-mode: overlay;
         }
 
         /* --- เอฟเฟกต์แสงวิ่งพาด (Shine Sweep) --- */
@@ -107,7 +93,7 @@
             left: -100%;
             width: 50%; 
             height: 100%;
-            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
             transform: skewX(-25deg);
             z-index: 15;
             pointer-events: none;
@@ -120,6 +106,14 @@
         @keyframes shine-sweep {
             0% { left: -100%; }
             100% { left: 200%; }
+        }
+        
+        /* Line clamp for category to avoid overlap */
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;  
+            overflow: hidden;
         }
     </style>
 </head>
@@ -136,7 +130,6 @@
         </div>
         
         <div class="flex flex-col gap-4 mb-6 mt-4">
-            
             <div class="flex flex-col sm:flex-row justify-between items-center px-1 gap-4">
                 <h2 class="text-xl font-bold text-white hidden sm:block">รายการทั้งหมด</h2>
                 
@@ -155,7 +148,7 @@
             </div>
         </div>
 
-        <!-- แถบข้อความ 5 สัตว์อันตราย (แทนที่ปุ่มลอย) -->
+        <!-- แถบข้อความ 5 สัตว์อันตราย -->
         <div onclick="toggleDangerPanel()" class="mb-6 mx-1 sm:mx-2 bg-gray-800 border border-red-500/30 rounded-xl p-3 sm:p-4 flex items-center justify-between cursor-pointer hover:border-red-500/60 hover:bg-gray-700 transition-all shadow-lg group">
             <div class="flex items-center gap-3 sm:gap-4">
                 <div class="bg-red-500/20 p-2.5 rounded-full group-hover:scale-110 transition-transform">
@@ -175,18 +168,18 @@
             </div>
         </div>
         
-        <!-- ปรับเป็น grid-cols-3 สำหรับมือถือ และลด gap ลง -->
-        <div id="storyGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-6 justify-items-center mb-8 px-1 sm:px-2">
+        <!-- ปรับกริดให้รองรับมือถือดีขึ้น เริ่มที่ 2 คอลัมน์ -->
+        <div id="storyGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6 justify-items-center mb-8 px-1 sm:px-2">
             <!-- ข้อมูลการ์ดจะถูกใส่ที่นี่ผ่าน JS -->
         </div>
 
         <!-- ระบบ Pagination (แบ่งหน้า) -->
         <div id="paginationControls" class="flex justify-between items-center bg-gray-800 p-3 rounded-lg border border-gray-700 max-w-2xl mx-auto mb-8 shadow-lg">
-            <button id="prevBtn" onclick="prevPage()" class="px-5 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-medium transition-colors shadow-sm">
+            <button id="prevBtn" onclick="prevPage()" class="px-4 sm:px-5 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-medium transition-colors shadow-sm">
                 ย้อนกลับ
             </button>
             <span id="pageInfo" class="text-sm font-semibold text-emerald-400">หน้า 1 / 1</span>
-            <button id="nextBtn" onclick="nextPage()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white disabled:bg-gray-700 disabled:text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-medium transition-colors shadow-sm">
+            <button id="nextBtn" onclick="nextPage()" class="px-4 sm:px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white disabled:bg-gray-700 disabled:text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-medium transition-colors shadow-sm">
                 ถัดไป
             </button>
         </div>
@@ -214,10 +207,10 @@
         </div>
     </nav>
 
-    <!-- Danger Side Panel Overlay (เอาเบลอออก ปรับให้ทึบขึ้นเพื่อลดภาระเครื่อง) -->
+    <!-- Danger Side Panel Overlay -->
     <div id="dangerOverlay" onclick="toggleDangerPanel()" class="fixed inset-0 bg-black/80 z-[50] hidden opacity-0 transition-opacity duration-200"></div>
 
-    <!-- Danger Side Panel (เปลี่ยนเป็นพื้นหลังสีทึบ bg-gray-900 และลดความซับซ้อนของเงา) -->
+    <!-- Danger Side Panel -->
     <div id="dangerPanel" class="fixed inset-y-0 right-0 w-72 sm:w-80 bg-gray-900 border-l border-red-500/30 shadow-xl z-[55] transform translate-x-full transition-transform duration-200 ease-out flex flex-col">
         <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-800">
             <h3 class="text-red-400 font-bold text-base sm:text-lg flex items-center gap-2">
@@ -233,7 +226,6 @@
         <div class="p-4 flex-grow overflow-y-auto pb-24 space-y-3">
             <p class="text-gray-400 text-xs mb-4">ข้อมูลต่อไปนี้คือตัวอย่างสัตว์ที่มีความอันตรายสูงในธรรมชาติ ควรระวังหากพบเจอ!</p>
             
-            <!-- Item 1 (เอาความโปร่งใสออก ใช้ bg-gray-800) -->
             <div onclick="openDangerModal(63)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
                 <span class="text-3xl drop-shadow-md group-hover:scale-110 transition-transform">🐍</span>
                 <div class="flex flex-col text-left">
@@ -241,7 +233,6 @@
                     <span class="text-red-400 text-xs mt-0.5">อสรพิษร้ายแรง</span>
                 </div>
             </div>
-            <!-- Item 2 -->
             <div onclick="openDangerModal(69)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
                 <span class="text-3xl drop-shadow-md group-hover:scale-110 transition-transform">🪼</span>
                 <div class="flex flex-col text-left">
@@ -249,7 +240,6 @@
                     <span class="text-red-400 text-xs mt-0.5">พิษทำลายระบบประสาท</span>
                 </div>
             </div>
-            <!-- Item 3 -->
             <div onclick="openDangerModal(6)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
                 <span class="text-3xl drop-shadow-md group-hover:scale-110 transition-transform">🦛</span>
                 <div class="flex flex-col text-left">
@@ -257,7 +247,6 @@
                     <span class="text-red-400 text-xs mt-0.5">ดุร้ายและหวงถิ่น</span>
                 </div>
             </div>
-            <!-- Item 4 -->
             <div onclick="openDangerModal(15)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
                 <span class="text-3xl drop-shadow-md group-hover:scale-110 transition-transform">🐊</span>
                 <div class="flex flex-col text-left">
@@ -265,7 +254,6 @@
                     <span class="text-red-400 text-xs mt-0.5">นักล่าซุ่มโจมตี</span>
                 </div>
             </div>
-            <!-- Item 5 -->
             <div onclick="openDangerModal(101)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
                 <span class="text-3xl drop-shadow-md group-hover:scale-110 transition-transform">🐸</span>
                 <div class="flex flex-col text-left">
@@ -293,8 +281,7 @@
                 <div class="h-1 w-16 bg-red-500 mx-auto mt-3 rounded-full opacity-70"></div>
             </div>
 
-            <!-- ปรับเป็น grid-cols-3 สำหรับมือถือ -->
-            <div id="favoritesGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-6 justify-items-center">
+            <div id="favoritesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6 justify-items-center">
                 <!-- ข้อมูลรายการโปรดจะแสดงที่นี่ -->
             </div>
 
@@ -334,7 +321,7 @@
                     <button id="btnFullStory" type="button" class="block w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-center shadow-lg hover:shadow-emerald-500/30 transition-all duration-200 transform hover:-translate-y-0.5">
                         <div class="flex items-center justify-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477-4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                            <span class="text-sm font-semibold">ชมวิดีโอสารคดี (เล่นต่อเนื่อง)</span>
+                            <span class="text-sm font-semibold">ชมวิดีโอสารคดี</span>
                         </div>
                     </button>
                 </div>
@@ -344,8 +331,7 @@
 
     <!-- Video Modal -->
     <div id="videoModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/95 backdrop-blur modal-animate" onclick="closeVideoModalOnOutside(event)">
-        <div class="relative w-full max-w-sm p-2 sm:p-4 flex flex-col items-center mt-6">
-            <!-- ปุ่มปิด Dialog ปรับให้เห็นชัดเจนและสวยงามขึ้น -->
+        <div class="relative w-full max-w-3xl p-2 flex flex-col items-center">
             <button onclick="closeVideoModal()" class="absolute -top-12 right-0 sm:right-2 text-white hover:text-emerald-400 transition-colors flex items-center gap-1.5 z-50 bg-gray-800/90 hover:bg-gray-700 rounded-full px-4 py-1.5 border border-gray-600 shadow-lg backdrop-blur-sm cursor-pointer">
                 <span class="text-sm font-semibold">ปิดหน้าต่าง</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -353,14 +339,14 @@
                 </svg>
             </button>
             
-            <div id="nowPlayingTitle" class="absolute -top-8 left-0 sm:left-2 text-emerald-400 text-sm font-semibold max-w-[200px] truncate hidden sm:block"></div>
+            <div id="nowPlayingTitle" class="absolute -top-8 left-0 sm:left-2 text-emerald-400 text-sm font-semibold max-w-full truncate hidden sm:block"></div>
             
-            <div class="w-full aspect-[9/16] bg-black rounded-lg shadow-2xl overflow-hidden border border-gray-800 relative flex items-center justify-center">
+            <!-- ปรับสัดส่วนวิดีโอเป็นแนวนอน 16:9 มาตรฐาน -->
+            <div class="w-full aspect-video bg-black rounded-lg shadow-2xl overflow-hidden border border-gray-800 relative flex items-center justify-center">
                 <div id="videoLoader" class="absolute inset-0 flex items-center justify-center z-0 hidden">
                     <div class="loader"></div>
                 </div>
                 
-                <!-- บังคับให้ Container เต็มพื้นที่แนวตั้ง -->
                 <div id="ytPlayerContainer" class="absolute inset-0 w-full h-full z-10 hidden">
                     <div id="videoFrame" class="w-full h-full"></div>
                 </div>
@@ -371,248 +357,409 @@
         </div>
     </div>
 
+    <!-- YouTube API Script -->
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        function escapeHtml(text) {
-            if (!text) return text;
-            return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        }
-
-        const stories = [
-            // --- แอฟริกา (Africa) ---
-            { "id": 1, "title": "เจ้าป่าแอฟริกา: สิงโต", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
-            { "id": 2, "title": "ช้างป่าแอฟริกัน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
-            { "id": 3, "title": "ม้าลายแห่งทุ่งหญ้าสะวันนา", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1501705388883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
-            { "id": 4, "title": "ยีราฟ คอยาวผู้สง่างาม", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
-            { "id": 5, "title": "แรดดำแห่งแอฟริกา", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
-            { "id": 6, "title": "ฮิปโปโปเตมัส", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1580227918883-9bfa6a12b91c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/P_9QKcrCPnE" },
-            { "id": 7, "title": "เสือชีตาห์ นักวิ่งลมกรด", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1551727041-5b347d65b633?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
-            { "id": 8, "title": "เมียร์แคต นักยามทะเลทราย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
-            { "id": 9, "title": "ไฮยีน่า นักล่าผู้ไม่ยอมแพ้", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
-            { "id": 10, "title": "นกกระจอกเทศ นกยักษ์บินไม่ได้", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
-            { "id": 11, "title": "ลีเมอร์หางวงแหวน แห่งมาดากัสการ์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
-            { "id": 12, "title": "ลิงกอริลลาหลังเงิน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
-            { "id": 13, "title": "ลิงชิมแปนซี ญาติใกล้ชิดมนุษย์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
-            { "id": 14, "title": "หมาป่าแอฟริกัน นักล่าเป็นฝูง", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
-            { "id": 15, "title": "จระเข้แม่น้ำไนล์", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
-
-            // --- เอเชีย (Asia) ---
-            { "id": 16, "title": "เสือโคร่งไซบีเรีย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1551727041-5b347d65b633?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/-8bzGIH68T0" },
-            { "id": 17, "title": "เสือโคร่งเบงกอล", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
-            { "id": 18, "title": "แพนด้ายักษ์ หมีกินไผ่", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
-            { "id": 19, "title": "แพนด้าแดง", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
-            { "id": 20, "title": "เสือดาวหิมะ แห่งเทือกเขาสูง", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1558237748-0382898cf8f3?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/QYv6gO4drq0" },
-            { "id": 21, "title": "นกยูงรำแพน", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1517594422361-5e182390a18f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
-            { "id": 22, "title": "ลิงอุรังอุตัง ป่าบอร์เนียว", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
-            { "id": 23, "title": "มังกรโคโมโด สัตว์โลกล้านปี", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
-            { "id": 24, "title": "จงอาง ราชาแห่งงูพิษ", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
-            { "id": 25, "title": "อูฐสองโหนก ทะเลทรายโกบี", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
-
-            // --- อเมริกา (Americas) ---
-            { "id": 26, "title": "งูอนาคอนดา ยักษ์ใหญ่ลุ่มน้ำอเมซอน", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
-            { "id": 27, "title": "นกอินทรีหัวขาว นักล่าเวหา", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
-            { "id": 28, "title": "เสือจากัวร์ เจ้าป่าอเมซอน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1551727041-5b347d65b633?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/-8bzGIH68T0" },
-            { "id": 29, "title": "สลอธ สัตว์ที่เชื่องช้าที่สุด", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
-            { "id": 30, "title": "คาปิบารา หนูยักษ์ใจดี", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1580227918883-9bfa6a12b91c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/P_9QKcrCPnE" },
-            { "id": 31, "title": "นกทูแคน จะงอยปากใหญ่", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1517594422361-5e182390a18f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
-            { "id": 32, "title": "หมีกริซลี แห่งอเมริกาเหนือ", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
-            { "id": 33, "title": "กวางมูส เขายักษ์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1501705388883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
-            { "id": 34, "title": "กบลูกศรพิษ สีสันแห่งอันตราย", "category": "สัตว์ครึ่งบกครึ่งน้ำ", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
-            { "id": 35, "title": "เต่ายักษ์กาลาปากอส", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
-            { "id": 36, "title": "อีกัวน่า มังกรจิ๋ว", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
-
-            // --- ออสเตรเลีย & โอเชียเนีย (Australia / Oceania) ---
-            { "id": 37, "title": "จิงโจ้ นักกระโดดแห่งออสเตรเลีย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564750975191-0ed807751ea1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/0Py7KuFq26w" },
-            { "id": 38, "title": "โคอาลา หมีต้นยูคาลิปตัส", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1535083252446-faea8c139ce6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/jupT6Wqvy1o" },
-            { "id": 39, "title": "ตุ่นปากเป็ด สัตว์ประหลาดมีพิษ", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
-            { "id": 40, "title": "นกอีมู นกยักษ์แห่งออสเตรเลีย", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
-            { "id": 41, "title": "แทสเมเนียนเดวิล", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
-            { "id": 42, "title": "วอมแบต จอมขุดดิน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
-            { "id": 43, "title": "นกกีวี สัญลักษณ์แห่งนิวซีแลนด์", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
-
-            // --- ขั้วโลก (Polar Regions) ---
-            { "id": 44, "title": "วิถีชีวิตหมีขั้วโลก", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
-            { "id": 45, "title": "เพนกวินจักรพรรดิ", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
-            { "id": 46, "title": "สุนัขจิ้งจอกอาร์กติก", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
-            { "id": 47, "title": "วอลรัส เขี้ยวยักษ์", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
-            { "id": 48, "title": "นาร์วาฬ ยูนิคอร์นแห่งท้องทะเล", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
-
-            // --- ใต้ทะเล & สัตว์น้ำ (Oceans / Aquatic) ---
-            { "id": 49, "title": "ความลับของฉลามขาว", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
-            { "id": 50, "title": "วาฬออร์ก้า นักล่าแห่งมหาสมุทร", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
-            { "id": 51, "title": "เต่าทะเลพันปี", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
-            { "id": 52, "title": "ปลากระเบนแมนตา", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
-            { "id": 53, "title": "โลมาแสนรู้", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1607153333880-9975765796a5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/f-Sd6xiJo90" },
-            { "id": 54, "title": "วาฬสีน้ำเงิน สัตว์ใหญ่ที่สุดในโลก", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
-            { "id": 55, "title": "วาฬหลังค่อม นักเต้นระบำใต้น้ำ", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
-            { "id": 56, "title": "หมึกยักษ์ จ้าวปัญญา", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
-            { "id": 57, "title": "ม้าน้ำ พ่อลูกอ่อน", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1607153333880-9975765796a5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/f-Sd6xiJo90" },
-            { "id": 58, "title": "แมงกะพรุน สิ่งมีชีวิตโปร่งแสง", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
-            { "id": 59, "title": "นากทะเล นักดำน้ำขี้เล่น", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1564750975191-0ed807751ea1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/0Py7KuFq26w" },
-
-            // --- ยุโรป และอื่นๆ (Europe / Others) ---
-            { "id": 60, "title": "หมาป่าสีเทา ผู้พิทักษ์ผืนป่า", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
-
-            // --- งูพิษ และ อสรพิษร้าย (Venomous Snakes) ---
-            { "id": 61, "title": "งูแบล็คแมมบ้า อสรพิษแห่งแอฟริกา", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
-            { "id": 62, "title": "งูหางกระดิ่ง เพชฌฆาตทะเลทราย", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
-            { "id": 63, "title": "งูไทปันโพ้นทะเล พิษร้ายที่สุดในโลก", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
-            { "id": 64, "title": "งูเหลือมยักษ์ นักล่าไร้พิษ", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
-            
-            // --- สายพันธุ์กิ้งก่า (Lizards & Chameleons) ---
-            { "id": 65, "title": "กิ้งก่าคามิเลียน นักพรางตัวขั้นเทพ", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
-            { "id": 66, "title": "อิกัวน่าทะเล กาลาปากอส", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/-8bzGIH68T0" },
-            { "id": 67, "title": "กิล่ามอนสเตอร์ กิ้งก่ามีพิษ", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
-            { "id": 68, "title": "กิ้งก่าแผงคอ วิ่งสู้ฟัด", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
-
-            // --- สัตว์น้ำ และ สัตว์ทะเลอันตราย/หายาก (Aquatic & Dangerous Marine Life) ---
-            { "id": 69, "title": "แมงกะพรุนกล่อง พิษร้ายแห่งท้องทะเล", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
-            { "id": 70, "title": "หมึกสายวงน้ำเงิน สวยซ่อนพิษ", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
-            { "id": 71, "title": "ปลาปิรันย่า ฝูงมฤตยูน้ำจืด", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
-            { "id": 72, "title": "ปลาแองเกลอร์ ปีศาจใต้ทะเลลึก", "category": "สัตว์น้ำ/หายาก", "image": "https://images.unsplash.com/photo-1551244072-5d12893278ab?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
-            { "id": 73, "title": "โลมาสีชมพู อเมซอน", "category": "สัตว์น้ำ/หายาก", "image": "https://images.unsplash.com/photo-1607153333880-9975765796a5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/f-Sd6xiJo90" },
-            { "id": 74, "title": "ฉลามหัวค้อน นักล่าแห่งมหาสมุทร", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
-
-            // --- สัตว์บก หายาก และ อันตรายสุดขั้ว (Rare & Dangerous Terrestrial) ---
-            { "id": 75, "title": "แมงมุมแม่ม่ายดำ", "category": "แมลง-แมง/อันตราย", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
-            { "id": 76, "title": "แมงป่องเดธสตอล์กเกอร์", "category": "แมลง-แมง/อันตราย", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
-            { "id": 77, "title": "สมเสร็จ สัตว์ดึกดำบรรพ์", "category": "สัตว์เลี้ยงลูกด้วยนม/หายาก", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
-            { "id": 78, "title": "ตัวลิ่น (พังพอนเกล็ด) เสี่ยงสูญพันธุ์", "category": "สัตว์เลี้ยงลูกด้วยนม/หายาก", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
-            { "id": 79, "title": "ควายป่าแอฟริกัน จอมโหด", "category": "สัตว์เลี้ยงลูกด้วยนม/อันตราย", "image": "https://images.unsplash.com/photo-1501705388883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
-            { "id": 80, "title": "นกคาสโซวารี นกอันตรายที่สุดในโลก", "category": "สัตว์ปีก/อันตราย", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
-            { "id": 81, "title": "เสือพูม่า สิงโตภูเขา", "category": "สัตว์เลี้ยงลูกด้วยนม/อันตราย", "image": "https://images.unsplash.com/photo-1551727041-5b347d65b633?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/-8bzGIH68T0" },
-            { "id": 82, "title": "หมาป่าโคโยตี้", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
-
-            // --- นก และ สัตว์ปีก (Birds & Avian) ---
-            { "id": 83, "title": "นกเค้าแมวหิมะ นักล่าแห่งอาร์กติก", "category": "สัตว์ปีก/นักล่า", "image": "https://images.unsplash.com/photo-1518928420658-00bbfbd5e381?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
-            { "id": 84, "title": "ฟลามิงโก้ ฝูงนกสีชมพู", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1498855926480-d98e83099315?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
-            { "id": 85, "title": "นกเงือก สัญลักษณ์แห่งป่าสมบูรณ์", "category": "สัตว์ปีก/หายาก", "image": "https://images.unsplash.com/photo-1550853024-fae8cd4be47f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
-            { "id": 86, "title": "มาคอว์ นกแก้วแสนรู้", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552728089-571692df9970?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
-            { "id": 87, "title": "ฮัมมิงเบิร์ด จิ๋วแต่แจ๋ว", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1550159930-40066082a4fc?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
-            { "id": 88, "title": "เหยี่ยวเพเรกริน เจ้าเวหาที่เร็วที่สุด", "category": "สัตว์ปีก/นักล่า", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/-8bzGIH68T0" },
-            { "id": 89, "title": "อัลบาทรอส นักเดินทางแห่งท้องทะเล", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1558237748-0382898cf8f3?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
-            { "id": 90, "title": "นกแร้ง คนเก็บกวาดซากแห่งธรรมชาติ", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1564750975191-0ed807751ea1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
-            { "id": 91, "title": "นกกระเต็นน้อย ราชานักประดาน้ำ", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1590422749906-8d6ef5e8eb9c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/f-Sd6xiJo90" },
-            { "id": 92, "title": "ปักษาสวรรค์ ราชาแห่งการเต้นเกี้ยวพาราสี", "category": "สัตว์ปีก/หายาก", "image": "https://images.unsplash.com/photo-1517594422361-5e182390a18f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
-            { "id": 93, "title": "นกกระสา ปากยาวทะลวงปลา", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
-            { "id": 94, "title": "นกฮูกตาโต ผู้พิทักษ์รัตติกาล", "category": "สัตว์ปีก/นักล่า", "image": "https://images.unsplash.com/photo-1579730041498-cbf38287e07a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
-
-            // --- แมงมุม และ สัตว์พิษอันตราย (Spiders & Venomous Animals) ---
-            { "id": 95, "title": "แมงมุมทารันทูล่า ยักษ์ขนปุย", "category": "แมลง-แมง/มีพิษ", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
-            { "id": 96, "title": "แมงมุมใยกรวยซิดนีย์ เพชฌฆาตออสเตรเลีย", "category": "แมลง-แมง/อันตราย", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
-            { "id": 97, "title": "แมงมุมบราซิลเลียนวันเดอริง (แมงมุมกล้วย)", "category": "แมลง-แมง/อันตราย", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
-            { "id": 98, "title": "แมงมุมแม่ม่ายน้ำตาล", "category": "แมลง-แมง/อันตราย", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
-            { "id": 99, "title": "ตะขาบยักษ์อเมซอน", "category": "แมลง-แมง/มีพิษ", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
-            { "id": 100, "title": "มดกระสุน (Bullet Ant) เจ็บปวดที่สุด", "category": "แมลง-แมง/มีพิษ", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
-            { "id": 101, "title": "กบสีทองมีพิษ สวยประหาร", "category": "สัตว์ครึ่งบกครึ่งน้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/-8bzGIH68T0" },
-            { "id": 102, "title": "หอยเต้าปูน นักฆ่าเงียบใต้น้ำ", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
-            { "id": 103, "title": "แมงกะพรุนไฟหมวกโปรตุเกส", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
-            { "id": 104, "title": "ปลาหิน (Stonefish) พรางตัวเนียน", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" }
-        ];
-
-        const ITEMS_PER_PAGE = 18; 
+        // --- ส่วนประกาศตัวแปรที่ขาดหายไป ---
+        const ITEMS_PER_PAGE = 12; // จำนวนการ์ดต่อหน้า
         let currentPage = 1;
-        let filteredStories = [...stories];
-        let favoriteIds = JSON.parse(localStorage.getItem('animal_favorites')) || [];
-
-        let isYtApiReady = false;
-        let ytPlayer = null;
-        let currentPlayingStoryIndex = -1; 
+        let filteredStories = [];
+        let favoriteIds = [];
+        
+        var isYtApiReady = false;
+        var ytPlayer = null;
+        var currentPlayingStoryIndex = -1; 
 
         function onYouTubeIframeAPIReady() {
             isYtApiReady = true;
         }
 
-        // --- ฟังก์ชันสร้างการ์ด 3 มิติ (ใช้ร่วมกัน) ---
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        const generateItems = (startId, endId, defaultCategory, prefix, itemsList) => {
+            const items = [];
+            for (let i = startId; i <= endId; i++) {
+                const index = i - startId;
+                const itemData = itemsList[index];
+                
+                let name = `${prefix}สายพันธุ์ที่ ${i}`;
+                let img = "https://images.unsplash.com/photo-1526726533690-5cbe9493f30d?w=500&q=80";
+                let video = "https://youtu.be/VBFCILa2-0k";
+
+                if (typeof itemData === 'string') {
+                    name = itemData;
+                } else if (typeof itemData === 'object' && itemData !== null) {
+                    name = itemData.title || name;
+                    img = itemData.image || img;
+                    video = itemData.fullStoryUrl || video;
+                }
+
+                items.push({
+                    id: i,
+                    title: name,
+                    category: defaultCategory,
+                    image: img,
+                    synopsisUrl: "#",
+                    fullStoryUrl: video
+                });
+            }
+            return items;
+        };
+
+       const extraBirds = [
+    "นกแซงแซวหางปลา", 
+    { title: "นกกา", fullStoryUrl: "https://www.youtube.com/", image: "https://images.unsplash.com/photo-1615002018863-79d031973059?w=500&q=80" }, 
+    "นกเค้าแมวหูสั้น", "นกเค้ากู่", "นกแก้วค็อกคาเทล",
+    "นกกระจอกเทศ", "นกนางแอ่น", "นกกระทา", "นกกระจาบ", "นกพญาไฟ", "นกแต้วแร้ว", 
+    "นกกินปลี", "นกปรอด", "นกอีเสือ", "นกกางเขน", "นกแซงแซว", "นกจาบคา", 
+    "นกกระเต็นปักหลัก", "นกตีทอง", "นกโพระดก", "นกเงือก", "นกคุ่ม", "นกกระยาง", 
+    "นกเป็ดน้ำ", "นกนางนวล", "เหยี่ยวแดง", "เหยี่ยวรุ้ง", "นกเค้าแมว", "นกแสก", 
+    "นกกระปูด", "นกกาเหว่า", "นกอีลุ้ม", "นกกวัก", "ไก่ฟ้าพญาลอ", "ไก่ฟ้าสีทอง", 
+    "นกยูงไทย", "นกยูงอินเดีย", "นกฮูก", "นกกระทุง", "นกกาบบัว", "นกตบยุง", 
+    "นกจาบฝน", "นกกระจอก", "นกกระจิบ", "นกหัวขวาน", "นกเงือกหัวแรด", "นกขุนทอง"
+];
+
+const extraAquatic = [
+    "ปลากระทุงเหว", "ปลาออร์", "ปลาฉลามกบ", "กุ้งมังกร", "ปลาช่อน", "ปลาดุก", 
+    "ปลาหมอ", "ปลาตะเพียน", "ปลานิล", "ปลาทับทิม", "ปลากราย", "ปลาบึก", "ปลาสวาย", 
+    "ปลาเทโพ", "ปลาเนื้ออ่อน", "ปลาหลด", "ปลาไหล", "ปลาทู", "ปลาโอ", "ปลากะพงขาว", 
+    "ปลากะพงแดง", "ปลาเก๋า", "ปลาอินทรี", "ปลาฉลามเสือ", "ปลากระเบนธง", "ปลาดาว", 
+    "หมึกกล้วย", "หมึกกระดอง", "กุ้งแชบ๊วย", "กุ้งก้ามกราม", "ปูม้า", "ปูทะเล", 
+    "ปูแสม", "หอยแครง", "หอยแมลงภู่", "หอยนางรม", "หอยเชลล์", "ม้าน้ำแคระ"
+];
+
+const extraInsects = [
+    "ปลวก", "ตะขาบไฟ", "แมงมุมใยกรวยซิดนีย์", "เห็บ", "ไร", "ผีเสื้อกะลาสี", 
+    "ผีเสื้อหนอนจำปี", "ผีเสื้อหางติ่ง", "ด้วงกว่างชน", "ด้วงคีม", "ด้วงแรด", 
+    "ด้วงเต่าทอง", "มดแดง", "มดดำ", "มดตะนอย", "มดคันไฟ", "ผึ้งโพรง", "ผึ้งมิ้ม", 
+    "ต่อหัวเสือ", "แตน", "แมลงปอเข็ม", "แมลงปอบ้าน", "จักจั่น", "แมลงทับ", 
+    "ตั๊กแตนใบไม้", "ตั๊กแตนกิ่งไม้", "แมงมุมใยกลม", "แมงมุมหมาป่า", "กิ้งกือ"
+];
+
+const extraReptiles = [
+    "จระเข้ตะโขง", "ตะพาบม่านทอง", "เขียดงู", "งูเหลือม", "งูหลาม", "งูจงอาง", 
+    "งูเห่าไทย", "งูแมวเซา", "งูเขียวหางไหม้", "งูสิงหางลาย", "งูทางมะพร้าว", 
+    "งูน้ำ", "กิ้งก่าคอแดง", "แย้", "กะปอม", "จิ้งเหลน", "ตุ๊กแกบ้าน", "ตุ๊กแกป่า", 
+    "จิ้งจกดิน", "เต่านา", "เต่าหับ", "เต่าตนุ", "เต่ามะเฟือง", "ตะพาบน้ำ", 
+    "จระเข้น้ำจืด", "จระเข้น้ำเค็ม", "กบนา", "กบภูเขา", "เขียด", "ปาด", "อึ่งอ่าง"
+];
+
+const extraDomestic = [
+    "ห่าน", "ลา", "อูฐ", "ปลากัด", "ปลาทอง", "สุนัขบางแก้ว", "สุนัขหลังอาน", 
+    "ปอมเมอเรเนียน", "พุดเดิ้ล", "ชิวาวา", "ปั๊ก", "บีเกิ้ล", "ดัลเมเชียน", 
+    "ร็อตไวเลอร์", "โกลเด้นรีทรีฟเวอร์", "ไซบีเรียนฮัสกี้", "คอร์กี้", "ชิสุ", 
+    "แมวขาวมณี", "แมวสีสวาด", "แมวศุภลักษณ์", "แมวโกนจา", "แมวบริติชชอร์ตแฮร์"
+];
+
+const stories = [
+    // --- 1-100: สัตว์เลี้ยงลูกด้วยนมขนาดใหญ่ (แอฟริกา/เอเชีย) ---
+    { "id": 1, "title": "เจ้าป่าแอฟริกา: สิงโต", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+    { "id": 2, "title": "ช้างป่าแอฟริกัน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
+    { "id": 3, "title": "ม้าลายแห่งทุ่งหญ้าสะวันนา", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-150170538883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+    { "id": 4, "title": "ยีราฟ คอยาวผู้สง่างาม", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 5, "title": "แรดดำแห่งแอฟริกา", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 6, "title": "ฮิปโปโปเตมัส จอมพลังใต้น้ำ", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1580227918883-9bfa6a12b91c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/P_9QKcrCPnE" },
+    { "id": 7, "title": "เสือชีตาห์ นักวิ่งลมกรด", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1551727041-5b347d65b633?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+    { "id": 8, "title": "เมียร์แคต นักยามทะเลทราย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 9, "title": "ไฮยีน่าลายจุด", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+    { "id": 10, "title": "วอร์ทฮ็อก (หมูป่าแอฟริกา)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/P_9QKcrCPnE" },
+    { "id": 11, "title": "ลิงกอริลลาหลังเงิน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 12, "title": "ชิมแปนซี ญาติมนุษย์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 13, "title": "โบโนโบ ลิงแสนรู้", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+    { "id": 14, "title": "บาบูนหน้ายาว", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 15, "title": "ลีเมอร์หางวงแหวน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+    { "id": 16, "title": "ควายป่าแอฟริกัน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-150170538883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+    { "id": 17, "title": "เสือดาวแอฟริกา", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1551727041-5b347d65b633?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+    { "id": 18, "title": "ละมั่งอิมพาลา", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 19, "title": "ช้างเอเชีย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
+    { "id": 20, "title": "เสือโคร่งเบงกอล", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1551727041-5b347d65b633?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+    { "id": 21, "title": "หมีควายเอเชีย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 22, "title": "แพนด้ายักษ์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 23, "title": "ลิงอุรังอุตังบอร์เนียว", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+    { "id": 24, "title": "สมเสร็จมลายู", "category": "สัตว์เลี้ยงลูกด้วยนม/หายาก", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+    { "id": 25, "title": "กระทิงป่า ยักษ์ดำ", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-150170538883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+    { "id": 26, "title": "เก้งหม้อ สัตว์ป่าหายาก", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-150170538883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+    { "id": 27, "title": "ละมั่ง สัญลักษณ์ป่าเต็งรัง", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 28, "title": "เลียงผา นักปีนเขาหินปูน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 29, "title": "กวางรูซ่า", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-150170538883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+    { "id": 30, "title": "อูฐสองโหนก", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 31, "title": "ควายน้ำ (Water Buffalo)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-150170538883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+    { "id": 32, "title": "วัวป่าออรอคส์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-150170538883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+    { "id": 33, "title": "ลิงแสม", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+    { "id": 34, "title": "ชะนีมือขาว", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+    { "id": 35, "title": "ค้างคาวแม่ไก่", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1518928420658-00bbfbd5e381?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 36, "title": "พังพอนแมนกูส", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 37, "title": "เม่นแผงคอยาว", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 38, "title": "ตัวลิ่นพังพอนเกล็ด", "category": "สัตว์เลี้ยงลูกด้วยนม/หายาก", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 39, "title": "พะยูนมานาที", "category": "สัตว์เลี้ยงลูกด้วยนม/สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1590422749906-8d6ef5e8eb9c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+    { "id": 40, "title": "นากแม่น้ำเอเชีย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564750975191-0ed807751ea1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/0Py7KuFq26w" },
+    { "id": 41, "title": "หมีหมา (Sun Bear)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 42, "title": "ลิงจมูกยาวบอร์เนียว", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 43, "title": "นางอายสโลว์ลอริส", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+    { "id": 44, "title": "กระรอกบินหลากสี", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-150170538883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+    { "id": 45, "title": "หมาจิ้งจอกแดง", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 46, "title": "หมาไนแอฟริกัน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 47, "title": "แรคคูนจอมซน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1504198266287-1659872e6590?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 48, "title": "สกั๊งค์มีกลิ่น", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1504198266287-1659872e6590?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 49, "title": "โอพอสซัม", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1504198266287-1659872e6590?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 50, "title": "หมีดำอเมริกัน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 51, "title": "กวางเรนเดียร์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1518928420658-00bbfbd5e381?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+    { "id": 52, "title": "ควายมัสก์ (Muskox)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
+    { "id": 53, "title": "วูล์ฟเวอรีน จอมโหด", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 54, "title": "อาร์มัดิลโลเกราะ", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
+    { "id": 55, "title": "บีเวอร์วิศวกร", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
+    { "id": 56, "title": "ตัวกินมดยักษ์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1551244072-5d12893278ab?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 57, "title": "แมวป่าลิงซ์ (Lynx)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1551727041-5b347d65b633?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+    { "id": 58, "title": "เสือดาวหิมะ", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1558237748-0382898cf8f3?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/QYv6gO4drq0" },
+    { "id": 59, "title": "หมีขั้วโลกขาว", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
+    { "id": 60, "title": "วอลรัสเขี้ยวยาว", "category": "สัตว์น้ำ/เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+    { "id": 61, "title": "สิงโตทะเล", "category": "สัตว์น้ำ/เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+    { "id": 62, "title": "แมวน้ำลายจุด", "category": "สัตว์น้ำ/เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+    { "id": 63, "title": "กระต่ายป่าอาร์กติก", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 64, "title": "หนูแฮมสเตอร์ป่า", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 65, "title": "ตุ่นจมูกดาว", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
+    { "id": 66, "title": "นางอายแคระ", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+    { "id": 67, "title": "ลามะแห่งแอนดีส", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 68, "title": "อัลปากาขนปุย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
+    { "id": 69, "title": "วิกูญา", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
+    { "id": 70, "title": "กวนากา", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
+    { "id": 71, "title": "หมีแว่นอเมริกาใต้", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 72, "title": "หมาป่ามาเนด", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 73, "title": "คาปิบาราหนูยักษ์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1580227918883-9bfa6a12b91c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/P_9QKcrCPnE" },
+    { "id": 74, "title": "สุนัขพุ่มไม้ (Bush Dog)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 75, "title": "จิงโจ้แดงออสเตรเลีย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564750975191-0ed807751ea1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/0Py7KuFq26w" },
+    { "id": 76, "title": "โคอาลาหมีต้นไม้", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1535083252446-faea8c139ce6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/jupT6Wqvy1o" },
+    { "id": 77, "title": "วอมแบตจอมขุด", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 78, "title": "ตุ่นปากเป็ดมีพิษ", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+    { "id": 79, "title": "แทสเมเนียนเดวิล", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+    { "id": 80, "title": "ควอกก้าหน้ายิ้ม", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564750975191-0ed807751ea1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/0Py7KuFq26w" },
+    { "id": 81, "title": "วัลลาบี", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564750975191-0ed807751ea1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/0Py7KuFq26w" },
+    { "id": 82, "title": "มัสคุรัต (Muskrat)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
+    { "id": 83, "title": "ตัวตุ่นกินมดหนาม", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 84, "title": "ชูการ์ไกลเดอร์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-150170538883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+    { "id": 85, "title": "พอสซัมหางพู่", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564750975191-0ed807751ea1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/0Py7KuFq26w" },
+    { "id": 86, "title": "ตุ่นกระเป๋า (Marsupial Mole)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
+    { "id": 87, "title": "หมาไม้ (Marten)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 88, "title": "พังพอนเหลือง", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 89, "title": "หมีควายควานขาว", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 90, "title": "กวางพลาว", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-150170538883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+    { "id": 91, "title": "ละมั่งสวรรค์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 92, "title": "หมูป่าเครา (Bearded Pig)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/P_9QKcrCPnE" },
+    { "id": 93, "title": "กวางผา", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 94, "title": "เลียงผาญี่ปุ่น", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 95, "title": "แพะภูเขาไอบีเรีย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 96, "title": "ละมั่งทิเบต", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 97, "title": "ลิงเสน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+    { "id": 98, "title": "ลิงวอก", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+    { "id": 99, "title": "พังพอนกินปู", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 100, "title": "อีเห็นข้างลาย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+
+    // --- 101-140: นกและสัตว์ปีกจากทั่วโลก ---
+    { "id": 101, "title": "นกอินทรีหัวขาว", "category": "สัตว์ปีก/นักล่า", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 102, "title": "นกเพนกวินจักรพรรดิ", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+    { "id": 103, "title": "นกทูแคน", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1517594422361-5e182390a18f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
+    { "id": 104, "title": "นกมาคอว์สีฟ้าเหลือง", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552728089-571692df9970?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 105, "title": "นกฮัมมิงเบิร์ด", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1550159930-40066082a4fc?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 106, "title": "นกเค้าแมวหิมะ", "category": "สัตว์ปีก/นักล่า", "image": "https://images.unsplash.com/photo-1518928420658-00bbfbd5e381?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 107, "title": "นกฟลามิงโก้ชมพู", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1498855926480-d98e83099315?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+    { "id": 108, "title": "นกพัฟฟิน", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1558237748-0382898cf8f3?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+    { "id": 109, "title": "นกเงือกกรามช้าง", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1550853024-fae8cd4be47f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
+    { "id": 110, "title": "นกอัลบาทรอส", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1558237748-0382898cf8f3?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+    { "id": 111, "title": "นกยูงรำแพน", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1517594422361-5e182390a18f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
+    { "id": 112, "title": "นกกระจอกเทศ", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+    { "id": 113, "title": "นกอีมู", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+    { "id": 114, "title": "นกกีวี", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 115, "title": "นกคาสโซวารี", "category": "สัตว์ปีก/อันตราย", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+    { "id": 116, "title": "นกอินทรีฟิลิปปินส์", "category": "สัตว์ปีก/นักล่า", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 117, "title": "นกกระเรียนมงกุฎแดง", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
+    { "id": 118, "title": "นกกระสาปากช้อน", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
+    { "id": 119, "title": "นกปากกรรไกร (Skimmer)", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1558237748-0382898cf8f3?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+    { "id": 120, "title": "นกเลขานุการ (Secretary Bird)", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1517594422361-5e182390a18f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
+    { "id": 121, "title": "นกกระเต็นลาย", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1590422749906-8d6ef5e8eb9c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/f-Sd6xiJo90" },
+    { "id": 122, "title": "นกหัวขวานแดง", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1550853024-fae8cd4be47f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
+    { "id": 123, "title": "นกกระจิบหญ้า", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1550159930-40066082a4fc?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 124, "title": "นกแร้งสีน้ำตาล", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1564750975191-0ed807751ea1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+    { "id": 125, "title": "นกเป็ดน้ำแมนดาริน", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+    { "id": 126, "title": "นกสวรรค์วิลสัน", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1517594422361-5e182390a18f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
+    { "id": 127, "title": "นกบูลเจย์ (Blue Jay)", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+    { "id": 128, "title": "นกคาร์ดินัล", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+    { "id": 129, "title": "นกขุนแผนอกส้ม", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1517594422361-5e182390a18f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
+    { "id": 130, "title": "นกอินทรีทะเล", "category": "สัตว์ปีก/นักล่า", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 131, "title": "นกแสก (Barn Owl)", "category": "สัตว์ปีก/นักล่า", "image": "https://images.unsplash.com/photo-1579730041498-cbf38287e07a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 132, "title": "นกนางนวลแกลบ", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1558237748-0382898cf8f3?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+    { "id": 133, "title": "นกจาบคาคอสีฟ้า", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1550159930-40066082a4fc?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 134, "title": "นกพญาไฟ", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1517594422361-5e182390a18f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
+    { "id": 135, "title": "นกปรอดหัวโขน", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1550159930-40066082a4fc?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 136, "title": "นกเอี้ยงสาริกา", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1550159930-40066082a4fc?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 137, "title": "นกกระจอก", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1550159930-40066082a4fc?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 138, "title": "นกพิราบป่า", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1550159930-40066082a4fc?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+    { "id": 139, "title": "นกยางโทน", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
+    { "id": 140, "title": "นกปากห่าง", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
+
+    // --- 141-450: สัตว์ปีกแบบสุ่มเติมเต็ม ---
+    ...generateItems(141, 450, "สัตว์ปีก", "นก", extraBirds),
+
+    // --- 451-480: สัตว์น้ำและสิ่งมีชีวิตในมหาสมุทร ---
+    { "id": 451, "title": "ฉลามวาฬ", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+    { "id": 452, "title": "ฉลามขาวมหาภัย", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+    { "id": 453, "title": "วาฬสีน้ำเงิน", "category": "สัตว์น้ำ/เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+    { "id": 454, "title": "วาฬเพชฌฆาต (Orca)", "category": "สัตว์น้ำ/เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+    { "id": 455, "title": "ปลากระเบนแมนตา", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+    { "id": 456, "title": "ปลาหมึกยักษ์จ้าวปัญญา", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+    { "id": 457, "title": "ปลาการ์ตูนส้มขาว", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+    { "id": 458, "title": "ปลาบลูแทงค์ (ปลาขี้ตังเบ็ด)", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+    { "id": 459, "title": "ม้าน้ำพ่อลูกอ่อน", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1607153333880-9975765796a5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/f-Sd6xiJo90" },
+    { "id": 460, "title": "เต่าทะเลตนุ", "category": "สัตว์น้ำ/เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
+    { "id": 461, "title": "แมงกะพรุนไฟ", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
+    { "id": 462, "title": "ปลาบล็อบฟิช", "category": "สัตว์น้ำ/หายาก", "image": "https://images.unsplash.com/photo-1551244072-5d12893278ab?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+    { "id": 463, "title": "นาร์วาฬ ยูนิคอร์นทะเล", "category": "สัตว์น้ำ/เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+    { "id": 464, "title": "ปูแมงมุมญี่ปุ่น", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+    { "id": 465, "title": "ปลาฉลามกรีนแลนด์", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+    { "id": 466, "title": "ปลาแองเกลอร์ (ปลาตกเบ็ด)", "category": "สัตว์น้ำ/หายาก", "image": "https://images.unsplash.com/photo-1551244072-5d12893278ab?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+    { "id": 467, "title": "ปลาหิน พิษร้ายแรง", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
+    { "id": 468, "title": "แมงกะพรุนกล่อง", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
+    { "id": 469, "title": "หมึกสายวงน้ำเงิน", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+    { "id": 470, "title": "ปลาปิรันย่า", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+    { "id": 471, "title": "ฉลามหัวค้อน", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+    { "id": 472, "title": "วาฬหลังค่อม", "category": "สัตว์น้ำ/เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+    { "id": 473, "title": "ปลากระเบนไฟฟ้า", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+    { "id": 474, "title": "ปลาพญานาค (Oarfish)", "category": "สัตว์น้ำ/หายาก", "image": "https://images.unsplash.com/photo-1551244072-5d12893278ab?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+    { "id": 475, "title": "ปลาปักเป้าพองลม", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
+    { "id": 476, "title": "ดาวทะเลสีแดง", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+    { "id": 477, "title": "ปลิงทะเล", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+    { "id": 478, "title": "ปะการังเขากวาง", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+    { "id": 479, "title": "ดอกไม้ทะเล", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+    { "id": 480, "title": "กุ้งดีดขัน (Pistol Shrimp)", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+
+    // --- 481-600: สัตว์น้ำแบบสุ่มเติมเต็ม ---
+    ...generateItems(481, 600, "สัตว์น้ำ", "ปลา", extraAquatic),
+
+    // --- 601-610: แมลง แมง และสัตว์ขาปล้อง ---
+    { "id": 601, "title": "ตั๊กแตนใบไม้", "category": "แมลง", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 602, "title": "ผีเสื้ออطلัส", "category": "แมลง", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 603, "title": "แมงมุมทารันทูล่าขนปุย", "category": "แมลง-แมง", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+    { "id": 604, "title": "แมงป่องเดธสตอล์กเกอร์", "category": "แมลง-แมง/อันตราย", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 605, "title": "มดกระสุน (Bullet Ant)", "category": "แมลง/มีพิษ", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+    { "id": 606, "title": "ผึ้งหลวง", "category": "แมลง", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 607, "title": "จักจั่นงวง", "category": "แมลง", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 608, "title": "ด้วงกว่างเฮอร์คิวลิส", "category": "แมลง", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 609, "title": "แมลงปอ", "category": "แมลง", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+    { "id": 610, "title": "ตั๊กแตนตำข้าว", "category": "แมลง", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+
+    // --- 611-750: แมลง แมงแบบสุ่มเติมเต็ม ---
+    ...generateItems(611, 750, "แมลง", "แมลง", extraInsects),
+
+    // --- 751-760: สัตว์เลื้อยคลานและครึ่งบกครึ่งน้ำ ---
+    { "id": 751, "title": "งูจงอาง ราชาอสรพิษ", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
+    { "id": 752, "title": "งูเห่าไทย", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
+    { "id": 753, "title": "งูเหลือมยักษ์", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
+    { "id": 754, "title": "กิ้งก่าคามิเลียน", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+    { "id": 755, "title": "ตุ๊กแกเสือดาว", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
+    { "id": 756, "title": "กบต้นไม้ตาแดง", "category": "สัตว์ครึ่งบกครึ่งน้ำ", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
+    { "id": 757, "title": "ซาลาแมนเดอร์ยักษ์", "category": "สัตว์ครึ่งบกครึ่งน้ำ", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
+    { "id": 758, "title": "กบลูกศรพิษ", "category": "สัตว์ครึ่งบกครึ่งน้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
+    { "id": 759, "title": "เต่าหับ", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
+    { "id": 760, "title": "จระเข้น้ำเค็ม", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
+
+    // --- 761-900: สัตว์เลื้อยคลานแบบสุ่มเติมเต็ม ---
+    ...generateItems(761, 900, "สัตว์เลื้อยคลาน", "สัตว์เลื้อยคลาน", extraReptiles),
+
+    // --- 901-910: สัตว์เลี้ยงและสัตว์ในฟาร์ม ---
+    { "id": 901, "title": "สุนัขโกลเด้น รีทรีฟเวอร์", "category": "สัตว์เลี้ยง", "image": "https://images.unsplash.com/photo-1552053831-71594a27632d?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 902, "title": "แมววิเชียรมาศ", "category": "สัตว์เลี้ยง", "image": "https://images.unsplash.com/photo-1513245543132-31f507417b26?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 903, "title": "ม้าอาระเบียน", "category": "สัตว์ฟาร์ม", "image": "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 904, "title": "วัวโฮลสไตน์", "category": "สัตว์ฟาร์ม", "image": "https://images.unsplash.com/photo-1546445317-29f4545e9d53?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 905, "title": "แกะขนฟู", "category": "สัตว์ฟาร์ม", "image": "https://images.unsplash.com/photo-1484557985045-edf25e08da73?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 906, "title": "ไก่แจ้ไทย", "category": "สัตว์ปีก/ฟาร์ม", "image": "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 907, "title": "กระต่ายหูตก", "category": "สัตว์เลี้ยง", "image": "https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 908, "title": "หนูแกสบี้", "category": "สัตว์เลี้ยง", "image": "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 909, "title": "หมูแคระ", "category": "สัตว์เลี้ยง", "image": "https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+    { "id": 910, "title": "เป็ดกากีแคมป์เบล", "category": "สัตว์ปีก/ฟาร์ม", "image": "https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+
+    // --- 911-980: สัตว์เลี้ยงแบบสุ่มเติมเต็ม ---
+    ...generateItems(911, 980, "สัตว์เลี้ยง", "สัตว์เลี้ยง", extraDomestic),
+
+    // --- 981-1000: สัตว์ดึกดำบรรพ์และบทสรุป ---
+    { "id": 981, "title": "ที-เร็กซ์ ราชาไดโนเสาร์", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 982, "title": "ช้างแมมมอธ ยุคน้ำแข็ง", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 983, "title": "เสือเขี้ยวดาบ", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 984, "title": "นกโดโด ผู้สูญพันธุ์", "category": "สัตว์สูญพันธุ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 985, "title": "ฉลามเมกาโลดอน", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 986, "title": "ไทรเซราทอปส์", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 987, "title": "สเตโกซอรัส", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 988, "title": "เทอโรแดกทิล", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 989, "title": "โมอา นกยักษ์นิวซีแลนด์", "category": "สัตว์สูญพันธุ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 990, "title": "แรดขนปุย", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 991, "title": "เสือโคร่งแคสเปียน", "category": "สัตว์สูญพันธุ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 992, "title": "ควายป่าโบราณ", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 993, "title": "สโลว์ยักษ์", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 994, "title": "กริพโทดอน (Glyptodon)", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 995, "title": "นกยักษ์เทอร์เรอร์เบิร์ด", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 996, "title": "วาฬ Basilosaurus", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 997, "title": "เสือดาวโบราณ", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 998, "title": "ไฮยีน่ายักษ์ดึกดำบรรพ์", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+    { "id": 999, "title": "มนุษย์ถ้ำนีแอนเดอร์ทัล", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1526726533690-5cbe9493f30d?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+    { "id": 1000, "title": "มนุษย์ปัจจุบัน (Homo Sapiens)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1526726533690-5cbe9493f30d?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" }
+];
+
+        // --- ส่วนที่ขาดหายไป: ฟังก์ชันสร้าง HTML สำหรับการ์ด ---
         function generate3DCardHTML(story, mainIndex, isFav) {
             return `
-            <div class="card-scene w-full max-w-[120px] sm:max-w-[160px] aspect-[2/3] cursor-pointer relative z-10 hover:z-20 group">
-                <div class="card-object w-full h-full rounded-xl">
-                    <!-- พื้นหลัง/กรอบการ์ด -->
+            <div class="card-scene group" onclick="openModal(${mainIndex})">
+                <div class="card-object">
                     <div class="card-bg"></div>
-                    
-                    <!-- ปุ่มหัวใจ (ลอยสูงสุด) -->
-                    <button onclick="toggleFavorite(event, ${story.id})" class="card-action-layer p-1.5 bg-black/60 rounded-full hover:bg-black/90 transition-colors backdrop-blur-md shadow-[0_4px_10px_rgba(0,0,0,0.6)] border border-gray-600/50">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4 transition-colors duration-200 ${isFav ? 'text-red-500 fill-red-500' : 'text-white'}" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                    </button>
-                    
-                    <!-- เนื้อหา (รูปลอยเหนือพื้นหลัง) -->
-                    <div onclick="openModal(${mainIndex})" class="card-content-layer">
-                        <img src="${story.image}" alt="${escapeHtml(story.title)}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-125">
-                        
-                        <!-- เอฟเฟกต์แสงวิ่งพาด (Shine) -->
+                    <div class="card-content-layer w-full h-full bg-gray-800">
                         <div class="shine-effect"></div>
-
-                        <!-- ไล่สีให้ข้อความอ่านง่าย -->
-                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <img src="${story.image}" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300" alt="${escapeHtml(story.title)}" loading="lazy">
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent"></div>
                         
-                        <!-- ข้อความที่จะเลื่อนขึ้นเล็กน้อยเมื่อถูก Hover -->
-                        <div class="absolute bottom-0 left-0 right-0 p-1.5 sm:p-3 pb-2 sm:pb-3 transform transition-transform duration-300 group-hover:-translate-y-1">
-                            <h3 class="text-[10px] sm:text-xs font-bold text-white leading-tight mb-0.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
-                                ${story.title}
-                            </h3>
-                            <p class="text-[8px] sm:text-[9px] text-emerald-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] line-clamp-1 group-hover:text-emerald-300 transition-colors">${story.category}</p>
+                        <div class="absolute bottom-0 w-full p-2 sm:p-3 flex flex-col justify-end">
+                            <span class="text-[9px] sm:text-[10px] text-emerald-400 font-medium mb-0.5 line-clamp-1 drop-shadow-md">${escapeHtml(story.category)}</span>
+                            <h3 class="text-xs sm:text-sm font-bold text-white leading-tight line-clamp-2 drop-shadow-lg">${escapeHtml(story.title)}</h3>
                         </div>
                     </div>
                     
-                    <!-- แสงสะท้อน 3D -->
-                    <div class="card-glare"></div>
+                    <div class="card-action-layer" onclick="toggleFavorite(event, ${story.id})">
+                        <div class="p-1.5 sm:p-2 bg-black/40 backdrop-blur-md rounded-full hover:bg-black/70 transition-all shadow-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 ${isFav ? 'text-red-500 fill-red-500' : 'text-white/80'} transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            `;
+            </div>`;
         }
 
-        // --- ฟังก์ชันควบคุมเอฟเฟกต์ 3D ด้วย JavaScript ---
+        // --- ส่วนที่ขาดหายไป: ฟังก์ชันเอฟเฟกต์ 3D ตอนโฮเวอร์ ---
         function applyTiltEffect() {
-            const cards = document.querySelectorAll('.card-scene');
-            
-            cards.forEach(card => {
-                // ข้ามถ้าเคยใส่ Event ไปแล้ว
-                if (card.classList.contains('tilt-ready')) return;
-                card.classList.add('tilt-ready');
+            // เช็คว่าไม่ใช่หน้าจอมือถือ (เพราะมือถือไม่มี hover)
+            if (window.matchMedia("(pointer: coarse)").matches) return;
 
-                const object = card.querySelector('.card-object');
-                const bg = card.querySelector('.card-bg');
-                const glare = card.querySelector('.card-glare');
-
-                card.addEventListener('mousemove', (e) => {
-                    const rect = card.getBoundingClientRect();
-                    const x = e.clientX - rect.left; 
-                    const y = e.clientY - rect.top;  
+            const scenes = document.querySelectorAll('.card-scene');
+            scenes.forEach(scene => {
+                const obj = scene.querySelector('.card-object');
+                
+                scene.addEventListener('mousemove', e => {
+                    const rect = scene.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
                     
-                    const centerX = rect.width / 2;
-                    const centerY = rect.height / 2;
+                    const cx = rect.width / 2;
+                    const cy = rect.height / 2;
                     
-                    // คำนวณองศาการหมุน (เลขยิ่งเยอะยิ่งเอียงมาก)
-                    const rotateX = ((y - centerY) / centerY) * -15; 
-                    const rotateY = ((x - centerX) / centerX) * 15;
-
-                    object.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                    // ปรับความไวของความเอียงตรงนี้ (เลขยิ่งน้อยยิ่งเอียงเยอะ)
+                    const rotX = ((y - cy) / cy) * -12; 
+                    const rotY = ((x - cx) / cx) * 12;
                     
-                    // ปรับเงาฐานให้ตรงข้ามกับทิศทางที่เอียง
-                    if(bg) {
-                        const shadowX = (x - centerX) / centerX * -10;
-                        const shadowY = (y - centerY) / centerY * -10;
-                        // ลบ style เงาที่ถูกฝังด้วย JS ออก เพื่อให้ไปใช้ hover ของ CSS (.card-scene:hover .card-bg) แทน
-                        // bg.style.boxShadow = `${shadowX}px ${shadowY + 15}px 25px rgba(0,0,0,0.6)`;
-                    }
-                    
-                    // ปรับตำแหน่งแสงสะท้อน
-                    if(glare) {
-                       const moveX = (x / rect.width) * 100;
-                       const moveY = (y / rect.height) * 100;
-                       glare.style.background = `radial-gradient(circle at ${moveX}% ${moveY}%, rgba(255,255,255,0.2) 0%, transparent 60%)`;
-                       glare.style.opacity = '1';
-                    }
+                    obj.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
                 });
-
-                card.addEventListener('mouseleave', () => {
-                    // คืนค่าทุกอย่างเมื่อเอาเมาส์ออก
-                    object.style.transform = `rotateX(0deg) rotateY(0deg)`;
-                    if(glare) glare.style.opacity = '0';
+                
+                scene.addEventListener('mouseleave', () => {
+                    obj.style.transform = `rotateX(0deg) rotateY(0deg)`;
                 });
             });
         }
@@ -648,7 +795,7 @@
 
             grid.innerHTML = htmlContent;
             
-            // เรียกใช้ฟังก์ชัน 3D เอฟเฟกต์หลังสร้าง element เสร็จ
+            // เรียกใช้ Tilt Effect หลังจากเรนเดอร์การ์ดเสร็จ
             setTimeout(applyTiltEffect, 50);
         }
 
@@ -671,16 +818,14 @@
                     return generate3DCardHTML(story, mainIndex, true);
                 }).join('');
                 
-                // เรียกใช้ 3D เอฟเฟกต์ในหน้าต่างรายการโปรดด้วย
                 setTimeout(applyTiltEffect, 50);
             }
         }
 
-        // --- ฟังก์ชันพื้นฐานอื่นๆ (ไม่ถูกเปลี่ยนแปลง) ---
         function updatePaginationUI(totalPages) {
             document.getElementById('pageInfo').innerText = `หน้า ${currentPage} / ${totalPages}`;
-            document.getElementById('prevBtn').disabled = currentPage === 1;
-            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+            document.getElementById('prevBtn').disabled = currentPage <= 1;
+            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
         }
 
         function prevPage() {
@@ -723,79 +868,12 @@
                 favoriteIds.push(storyId); 
             }
             localStorage.setItem('animal_favorites', JSON.stringify(favoriteIds));
-            renderStories();
+            
+            renderStories(); // Update main grid
+            
+            // If favorites modal is open, update it too
             if (!document.getElementById('favoritesModal').classList.contains('hidden')) {
                 renderFavoritesModal();
-            }
-        }
-
-        function goHome() {
-            closeFavoritesModal();
-            closeModal();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            document.getElementById('navHome').classList.replace('text-gray-400', 'text-emerald-500');
-            document.getElementById('navFav').classList.replace('text-emerald-500', 'text-gray-400');
-        }
-
-        function openFavoritesModal() {
-            document.getElementById('navFav').classList.replace('text-gray-400', 'text-emerald-500');
-            document.getElementById('navHome').classList.replace('text-emerald-500', 'text-gray-400');
-            renderFavoritesModal();
-            const favModal = document.getElementById('favoritesModal');
-            favModal.classList.remove('hidden');
-            favModal.classList.add('flex');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeFavoritesModal() {
-            const favModal = document.getElementById('favoritesModal');
-            favModal.classList.add('hidden');
-            favModal.classList.remove('flex');
-            document.body.style.overflow = 'auto';
-            document.getElementById('navHome').classList.replace('text-gray-400', 'text-emerald-500');
-            document.getElementById('navFav').classList.replace('text-emerald-500', 'text-gray-400');
-        }
-
-        function closeFavoritesOnOutside(event) {
-            if (event.target === document.getElementById('favoritesModal')) closeFavoritesModal();
-        }
-
-        // --- ระบบเปิดปิดแถบด้านข้าง (Danger Panel) ---
-        function toggleDangerPanel() {
-            const panel = document.getElementById('dangerPanel');
-            const overlay = document.getElementById('dangerOverlay');
-            
-            if (panel.classList.contains('translate-x-full')) {
-                // เปิด Panel
-                panel.classList.remove('translate-x-full');
-                overlay.classList.remove('hidden');
-                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
-                document.body.style.overflow = 'hidden';
-            } else {
-                // ปิด Panel
-                panel.classList.add('translate-x-full');
-                overlay.classList.add('opacity-0');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
-                
-                // คืนค่า scroll ให้บอดี้ถ้าไม่มี modal อื่นเปิดอยู่
-                if(document.getElementById('favoritesModal').classList.contains('hidden') && 
-                   document.getElementById('selectionModal').classList.contains('hidden') && 
-                   document.getElementById('videoModal').classList.contains('hidden')) {
-                    document.body.style.overflow = 'auto';
-                }
-            }
-        }
-
-        function openDangerModal(storyId) {
-            toggleDangerPanel(); // ปิดแถบด้านข้างก่อน
-            openModalById(storyId); // เปิดหน้าต่างวิดีโอ
-        }
-
-        // เพิ่มฟังก์ชันสำหรับเปิด Modal ด้วย ID ของสัตว์
-        function openModalById(storyId) {
-            const mainIndex = stories.findIndex(s => s.id === storyId);
-            if (mainIndex !== -1) {
-                openModal(mainIndex);
             }
         }
 
@@ -809,6 +887,8 @@
             document.getElementById('btnSynopsis').href = story.synopsisUrl;
             
             const btnVideo = document.getElementById('btnFullStory');
+            const btnVideoText = btnVideo.querySelector('span');
+            
             if (!story.fullStoryUrl || story.fullStoryUrl === '#' || story.fullStoryUrl.trim() === '') {
                 btnVideo.classList.add('opacity-50', 'cursor-not-allowed');
                 btnVideo.onclick = (e) => e.preventDefault();
@@ -816,9 +896,11 @@
                 btnVideo.classList.remove('opacity-50', 'cursor-not-allowed');
                 btnVideo.onclick = () => openVideoModal(mainIndex);
             }
+            if(btnVideoText) btnVideoText.innerText = "ชมวิดีโอสารคดี";
 
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; // Lock scroll
         }
 
         function closeModal() {
@@ -826,7 +908,7 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             
-            // เช็คว่า panel พิเศษอื่นๆ ปิดอยู่ไหม ถึงจะคืน scroll
+            // Check if other panels are open before restoring scroll
             if(document.getElementById('favoritesModal').classList.contains('hidden') &&
                document.getElementById('dangerPanel').classList.contains('translate-x-full')) {
                 document.body.style.overflow = 'auto';
@@ -869,7 +951,6 @@
 
                 if (isYtApiReady) {
                     if (!ytPlayer) {
-                        // เพิ่มการตั้งค่า width และ height เป็น 100% ให้แสดงผลเต็มแนวตั้ง
                         ytPlayer = new YT.Player('videoFrame', {
                             height: '100%',
                             width: '100%',
@@ -888,6 +969,7 @@
                         videoLoader.style.display = 'none';
                     }
                 } else {
+                    // Retry if API not ready yet
                     setTimeout(() => openVideoModal(mainIndex), 500);
                     return;
                 }
@@ -905,6 +987,7 @@
         }
 
         function onPlayerStateChange(event) {
+            // 0 = Ended, 1 = Playing
             if (event.data === 0) playNextStory();
             if (event.data === 1) document.getElementById('videoLoader').style.display = 'none';
         }
@@ -936,8 +1019,87 @@
             if (event.target === document.getElementById('videoModal')) closeVideoModal();
         }
 
-        // Initialize หน้าแรก
-        renderStories(); 
+        function goHome() {
+            closeFavoritesModal();
+            closeModal();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById('navHome').classList.replace('text-gray-400', 'text-emerald-500');
+            document.getElementById('navFav').classList.replace('text-emerald-500', 'text-gray-400');
+        }
+
+        function openFavoritesModal() {
+            document.getElementById('navFav').classList.replace('text-gray-400', 'text-emerald-500');
+            document.getElementById('navHome').classList.replace('text-emerald-500', 'text-gray-400');
+            renderFavoritesModal();
+            const favModal = document.getElementById('favoritesModal');
+            favModal.classList.remove('hidden');
+            favModal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFavoritesModal() {
+            const favModal = document.getElementById('favoritesModal');
+            favModal.classList.add('hidden');
+            favModal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+            document.getElementById('navHome').classList.replace('text-gray-400', 'text-emerald-500');
+            document.getElementById('navFav').classList.replace('text-emerald-500', 'text-gray-400');
+        }
+
+        function closeFavoritesOnOutside(event) {
+            if (event.target === document.getElementById('favoritesModal')) closeFavoritesModal();
+        }
+
+        function toggleDangerPanel() {
+            const panel = document.getElementById('dangerPanel');
+            const overlay = document.getElementById('dangerOverlay');
+            
+            if (panel.classList.contains('translate-x-full')) {
+                panel.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                document.body.style.overflow = 'hidden';
+            } else {
+                panel.classList.add('translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+                
+                if(document.getElementById('favoritesModal').classList.contains('hidden') && 
+                   document.getElementById('selectionModal').classList.contains('hidden') && 
+                   document.getElementById('videoModal').classList.contains('hidden')) {
+                    document.body.style.overflow = 'auto';
+                }
+            }
+        }
+
+        function openDangerModal(storyId) {
+            toggleDangerPanel(); 
+            setTimeout(() => {
+                const mainIndex = stories.findIndex(s => s.id === storyId);
+                if (mainIndex !== -1) {
+                    openModal(mainIndex);
+                }
+            }, 300); // Wait for panel to close
+        }
+
+        // --- ส่วน Initialization เมื่อหน้าเว็บโหลดเสร็จ ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // โหลดข้อมูลรายการโปรดจาก LocalStorage
+            const storedFavs = localStorage.getItem('animal_favorites');
+            if (storedFavs) {
+                try {
+                    favoriteIds = JSON.parse(storedFavs);
+                } catch(e) {
+                    favoriteIds = [];
+                }
+            }
+            
+            // คัดลอกข้อมูล stories ต้นฉบับมาไว้สำหรับใช้งาน
+            filteredStories = [...stories];
+            
+            // สั่งเรนเดอร์การ์ด
+            renderStories();
+        });
 
     </script>
 </body>
