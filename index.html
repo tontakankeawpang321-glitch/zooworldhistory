@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สารคดีสัตว์โลก</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+        .modal-animate { animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #10b981;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- 3D Animated Card Effect --- */
+        .card-scene {
+            /* กำหนดระยะความลึก */
+            perspective: 1500px; 
+        }
+        
+        .card-object {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            /* ทำให้ลูกๆ อยู่ในปริภูมิ 3 มิติ */
+            transform-style: preserve-3d;
+            transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        
+        .card-scene:not(:hover) .card-object {
+            /* คืนค่าอย่างนุ่มนวลเมื่อเอาเมาส์ออก */
+            transition: transform 0.5s ease-out;
+        }
+        
+        .card-bg {
+            position: absolute;
+            inset: 0;
+            background-color: #1f2937;
+            border-radius: 0.75rem;
+            border: 1px solid #374151;
+            /* เงาฐาน */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+            transition: box-shadow 0.1s, border-color 0.3s;
+        }
+        
+        .card-scene:not(:hover) .card-bg {
+            transition: box-shadow 0.5s ease-out, border-color 0.3s;
+        }
+        
+        .card-scene:hover .card-bg {
+            border-color: #10b981;
+        }
+        
+        .card-content-layer {
+            position: absolute;
+            inset: 0;
+            /* ดันภาพและข้อความให้ลอยขึ้นมาข้างหน้า */
+            transform: translateZ(30px); 
+            border-radius: 0.75rem;
+            overflow: hidden;
+            backface-visibility: hidden;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .card-action-layer {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            /* ดันปุ่มหัวใจให้ลอยสูงที่สุด */
+            transform: translateZ(55px); 
+            z-index: 20;
+        }
+        
+        .card-glare {
+            position: absolute;
+            inset: 0;
+            border-radius: 0.75rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+            /* แสงสะท้อนอยู่เหนือรูปนิดหน่อย */
+            transform: translateZ(32px); 
+            mix-blend-mode: overlay;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 min-h-screen text-gray-100 flex flex-col pb-20">
+
+    <div class="max-w-7xl mx-auto p-3 w-full flex-grow">
+
+        <div class="text-center py-6 mb-4">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-300 to-teal-500 drop-shadow-sm mb-2">
+                สารคดีสัตว์โลก
+            </h1>
+            <p class="text-gray-400 text-sm sm:text-base">สำรวจชีวิตธรรมชาติและสัตว์ป่าทั่วโลก (เล่นต่อเนื่องอัตโนมัติ)</p>
+            <div class="h-1 w-24 bg-emerald-500 mx-auto mt-4 rounded-full opacity-70"></div>
+        </div>
+        
+        <!-- แถบรายชื่อสัตว์อันตราย (แบบตายตัว สวยงาม) -->
+        <div class="mb-8 bg-gray-800/60 border border-red-500/20 rounded-2xl p-4 sm:p-5 backdrop-blur-sm shadow-lg">
+            <div class="flex flex-col mb-4">
+                <h3 class="text-red-400 font-bold text-lg flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    5 สัตว์อันตรายที่ควรระวัง
+                </h3>
+                <p class="text-gray-400 text-xs sm:text-sm mt-1">การประเมินความอันตรายเป็นเรื่องของมุมมอง ข้อมูลนี้คือตัวอย่างสัตว์ที่มีความอันตรายสูงในธรรมชาติ</p>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <!-- Item 1 -->
+                <div onclick="openModalById(63)" class="bg-gray-900/50 border border-red-500/10 rounded-xl p-3 flex flex-col items-center text-center hover:border-red-500/40 hover:bg-gray-800 transition-all cursor-pointer">
+                    <span class="text-2xl mb-1 drop-shadow-md">🐍</span>
+                    <span class="text-white text-xs sm:text-sm font-semibold">งูไทปันโพ้นทะเล</span>
+                    <span class="text-red-400 text-[10px] sm:text-xs mt-0.5">อสรพิษร้ายแรง</span>
+                </div>
+                <!-- Item 2 -->
+                <div onclick="openModalById(69)" class="bg-gray-900/50 border border-red-500/10 rounded-xl p-3 flex flex-col items-center text-center hover:border-red-500/40 hover:bg-gray-800 transition-all cursor-pointer">
+                    <span class="text-2xl mb-1 drop-shadow-md">🪼</span>
+                    <span class="text-white text-xs sm:text-sm font-semibold">แมงกะพรุนกล่อง</span>
+                    <span class="text-red-400 text-[10px] sm:text-xs mt-0.5">พิษทำลายระบบประสาท</span>
+                </div>
+                <!-- Item 3 -->
+                <div onclick="openModalById(6)" class="bg-gray-900/50 border border-red-500/10 rounded-xl p-3 flex flex-col items-center text-center hover:border-red-500/40 hover:bg-gray-800 transition-all cursor-pointer">
+                    <span class="text-2xl mb-1 drop-shadow-md">🦛</span>
+                    <span class="text-white text-xs sm:text-sm font-semibold">ฮิปโปโปเตมัส</span>
+                    <span class="text-red-400 text-[10px] sm:text-xs mt-0.5">ดุร้ายและหวงถิ่น</span>
+                </div>
+                <!-- Item 4 -->
+                <div onclick="openModalById(15)" class="bg-gray-900/50 border border-red-500/10 rounded-xl p-3 flex flex-col items-center text-center hover:border-red-500/40 hover:bg-gray-800 transition-all cursor-pointer">
+                    <span class="text-2xl mb-1 drop-shadow-md">🐊</span>
+                    <span class="text-white text-xs sm:text-sm font-semibold">จระเข้แม่น้ำไนล์</span>
+                    <span class="text-red-400 text-[10px] sm:text-xs mt-0.5">นักล่าซุ่มโจมตี</span>
+                </div>
+                <!-- Item 5 -->
+                <div onclick="openModalById(101)" class="bg-gray-900/50 border border-red-500/10 rounded-xl p-3 flex flex-col items-center text-center hover:border-red-500/40 hover:bg-gray-800 transition-all cursor-pointer col-span-2 sm:col-span-1">
+                    <span class="text-2xl mb-1 drop-shadow-md">🐸</span>
+                    <span class="text-white text-xs sm:text-sm font-semibold">กบสีทองมีพิษ</span>
+                    <span class="text-red-400 text-[10px] sm:text-xs mt-0.5">อันตรายเมื่อสัมผัส</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex flex-col gap-4 mb-6">
+            
+            <div class="flex flex-col sm:flex-row justify-between items-center px-1 gap-4">
+                <h2 class="text-xl font-bold text-white hidden sm:block">รายการทั้งหมด</h2>
+                
+                <div class="relative w-full sm:w-72 group">
+                    <input type="text" 
+                           id="searchInput"
+                           oninput="handleSearch(this.value)"
+                           placeholder="ค้นหาชื่อสัตว์, ประเภท..." 
+                           class="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-full py-2 pl-4 pr-10 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-sm placeholder-gray-500 shadow-sm group-hover:border-gray-600">
+                    <button class="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-emerald-400 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ปรับเป็น grid-cols-3 สำหรับมือถือ และลด gap ลง -->
+        <div id="storyGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-6 justify-items-center mb-8 px-1 sm:px-2">
+            <!-- ข้อมูลการ์ดจะถูกใส่ที่นี่ผ่าน JS -->
+        </div>
+
+        <!-- ระบบ Pagination (แบ่งหน้า) -->
+        <div id="paginationControls" class="flex justify-between items-center bg-gray-800 p-3 rounded-lg border border-gray-700 max-w-2xl mx-auto mb-8 shadow-lg">
+            <button id="prevBtn" onclick="prevPage()" class="px-5 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-medium transition-colors shadow-sm">
+                ย้อนกลับ
+            </button>
+            <span id="pageInfo" class="text-sm font-semibold text-emerald-400">หน้า 1 / 1</span>
+            <button id="nextBtn" onclick="nextPage()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white disabled:bg-gray-700 disabled:text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-medium transition-colors shadow-sm">
+                ถัดไป
+            </button>
+        </div>
+
+        <div id="noResult" class="hidden text-center text-gray-500 mt-10 w-full col-span-full pb-10">
+            <p>ไม่พบรายการที่ค้นหา</p>
+        </div>
+    </div>
+
+    <!-- แถบเมนูด้านล่าง (Bottom Navigation) -->
+    <nav class="fixed bottom-0 w-full bg-gray-900 border-t border-gray-800 z-40 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.3)]">
+        <div class="flex justify-around items-center p-2 max-w-md mx-auto">
+            <button onclick="goHome()" id="navHome" class="flex flex-col items-center w-full py-1 text-emerald-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span class="text-[10px] mt-1 font-medium">หน้าหลัก</span>
+            </button>
+            <button onclick="openFavoritesModal()" id="navFav" class="flex flex-col items-center w-full py-1 text-gray-400 hover:text-emerald-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <span class="text-[10px] mt-1 font-medium">รายการโปรด</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Favorites Modal -->
+    <div id="favoritesModal" class="fixed inset-0 z-50 hidden items-start justify-center bg-gray-900/95 backdrop-blur-md pt-6 px-3 overflow-y-auto pb-24" onclick="closeFavoritesOnOutside(event)">
+        <div class="bg-gray-800 border border-gray-700 w-full max-w-5xl rounded-2xl p-4 sm:p-6 relative min-h-[60vh] modal-animate shadow-2xl">
+            <button onclick="closeFavoritesModal()" class="absolute top-4 right-4 p-2 bg-gray-700 rounded-full text-gray-200 hover:text-white hover:bg-red-500 transition-all z-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-pink-500 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-red-500 fill-red-500" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    สารคดีโปรดของคุณ
+                </h2>
+                <div class="h-1 w-16 bg-red-500 mx-auto mt-3 rounded-full opacity-70"></div>
+            </div>
+
+            <!-- ปรับเป็น grid-cols-3 สำหรับมือถือ -->
+            <div id="favoritesGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-6 justify-items-center">
+                <!-- ข้อมูลรายการโปรดจะแสดงที่นี่ -->
+            </div>
+
+            <div id="noFavoritesMsg" class="hidden flex-col items-center justify-center text-gray-500 mt-16 mb-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <p>คุณยังไม่ได้บันทึกเรื่องโปรดใดๆ</p>
+                <p class="text-sm mt-2">กดรูปหัวใจในการ์ดเพื่อบันทึกเก็บไว้ดูทีหลัง</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selection Modal (หน้าต่างเลือกโหมด) ปรับ z-index เป็น 60 -->
+    <div id="selectionModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="closeModalOnOutside(event)">
+        <div class="bg-gray-800 border border-gray-700 w-full max-w-sm rounded-2xl shadow-2xl modal-animate relative overflow-hidden flex flex-col">
+            <div class="h-32 w-full relative">
+                <img id="modalImage" src="" alt="Modal Cover" class="w-full h-full object-cover opacity-60">
+                <div class="absolute inset-0 bg-gradient-to-t from-gray-800 to-transparent"></div>
+                <button onclick="closeModal()" class="absolute top-2 right-2 p-1 bg-black/40 rounded-full text-gray-200 hover:text-white hover:bg-black/60 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="p-6 -mt-6 relative z-10">
+                <div class="text-center mb-6">
+                    <h2 id="modalTitle" class="text-xl font-bold text-white mb-2 drop-shadow-md">ชื่อเรื่อง</h2>
+                    <p class="text-gray-400 text-xs">เลือกรูปแบบการรับชมที่คุณต้องการ</p>
+                </div>
+                <div class="space-y-3">
+                    <a id="btnSynopsis" href="#" target="_blank" class="block w-full py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-center transition-all duration-200 border border-gray-600 hover:border-emerald-400 group">
+                        <div class="flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            <span class="text-sm font-medium">อ่านบทความ / เกร็ดความรู้</span>
+                        </div>
+                    </a>
+                    
+                    <button id="btnFullStory" type="button" class="block w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-center shadow-lg hover:shadow-emerald-500/30 transition-all duration-200 transform hover:-translate-y-0.5">
+                        <div class="flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                            <span class="text-sm font-semibold">ชมวิดีโอสารคดี (เล่นต่อเนื่อง)</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Modal -->
+    <div id="videoModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/95 backdrop-blur modal-animate" onclick="closeVideoModalOnOutside(event)">
+        <div class="relative w-full max-w-sm p-2 sm:p-4 flex flex-col items-center mt-6">
+            <!-- ปุ่มปิด Dialog ปรับให้เห็นชัดเจนและสวยงามขึ้น -->
+            <button onclick="closeVideoModal()" class="absolute -top-12 right-0 sm:right-2 text-white hover:text-emerald-400 transition-colors flex items-center gap-1.5 z-50 bg-gray-800/90 hover:bg-gray-700 rounded-full px-4 py-1.5 border border-gray-600 shadow-lg backdrop-blur-sm cursor-pointer">
+                <span class="text-sm font-semibold">ปิดหน้าต่าง</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            
+            <div id="nowPlayingTitle" class="absolute -top-8 left-0 sm:left-2 text-emerald-400 text-sm font-semibold max-w-[200px] truncate hidden sm:block"></div>
+            
+            <div class="w-full aspect-[9/16] bg-black rounded-lg shadow-2xl overflow-hidden border border-gray-800 relative flex items-center justify-center">
+                <div id="videoLoader" class="absolute inset-0 flex items-center justify-center z-0 hidden">
+                    <div class="loader"></div>
+                </div>
+                
+                <!-- บังคับให้ Container เต็มพื้นที่แนวตั้ง -->
+                <div id="ytPlayerContainer" class="absolute inset-0 w-full h-full z-10 hidden">
+                    <div id="videoFrame" class="w-full h-full"></div>
+                </div>
+                
+                <iframe id="normalIframe" class="absolute inset-0 w-full h-full z-10 hidden" title="Video player" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+            </div>
+            <div class="mt-4 text-center text-xs text-gray-500 w-full">วิดีโอจะเล่นตอนต่อไปอัตโนมัติเมื่อจบ</div>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        function escapeHtml(text) {
+            if (!text) return text;
+            return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        const stories = [
+            // --- แอฟริกา (Africa) ---
+            { "id": 1, "title": "เจ้าป่าแอฟริกา: สิงโต", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+            { "id": 2, "title": "ช้างป่าแอฟริกัน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
+            { "id": 3, "title": "ม้าลายแห่งทุ่งหญ้าสะวันนา", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1501705388883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+            { "id": 4, "title": "ยีราฟ คอยาวผู้สง่างาม", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+            { "id": 5, "title": "แรดดำแห่งแอฟริกา", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+            { "id": 6, "title": "ฮิปโปโปเตมัส", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1580227918883-9bfa6a12b91c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/P_9QKcrCPnE" },
+            { "id": 7, "title": "เสือชีตาห์ นักวิ่งลมกรด", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1551727041-5b347d65b633?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+            { "id": 8, "title": "เมียร์แคต นักยามทะเลทราย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+            { "id": 9, "title": "ไฮยีน่า นักล่าผู้ไม่ยอมแพ้", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+            { "id": 10, "title": "นกกระจอกเทศ นกยักษ์บินไม่ได้", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+            { "id": 11, "title": "ลีเมอร์หางวงแหวน แห่งมาดากัสการ์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+            { "id": 12, "title": "ลิงกอริลลาหลังเงิน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+            { "id": 13, "title": "ลิงชิมแปนซี ญาติใกล้ชิดมนุษย์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+            { "id": 14, "title": "หมาป่าแอฟริกัน นักล่าเป็นฝูง", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+            { "id": 15, "title": "จระเข้แม่น้ำไนล์", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
+
+            // --- เอเชีย (Asia) ---
+            { "id": 16, "title": "เสือโคร่งไซบีเรีย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1551727041-5b347d65b633?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/-8bzGIH68T0" },
+            { "id": 17, "title": "เสือโคร่งเบงกอล", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+            { "id": 18, "title": "แพนด้ายักษ์ หมีกินไผ่", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+            { "id": 19, "title": "แพนด้าแดง", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
+            { "id": 20, "title": "เสือดาวหิมะ แห่งเทือกเขาสูง", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1558237748-0382898cf8f3?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/QYv6gO4drq0" },
+            { "id": 21, "title": "นกยูงรำแพน", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1517594422361-5e182390a18f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
+            { "id": 22, "title": "ลิงอุรังอุตัง ป่าบอร์เนียว", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+            { "id": 23, "title": "มังกรโคโมโด สัตว์โลกล้านปี", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
+            { "id": 24, "title": "จงอาง ราชาแห่งงูพิษ", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
+            { "id": 25, "title": "อูฐสองโหนก ทะเลทรายโกบี", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1547432368-23ab9bd9dc0b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+
+            // --- อเมริกา (Americas) ---
+            { "id": 26, "title": "งูอนาคอนดา ยักษ์ใหญ่ลุ่มน้ำอเมซอน", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
+            { "id": 27, "title": "นกอินทรีหัวขาว นักล่าเวหา", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+            { "id": 28, "title": "เสือจากัวร์ เจ้าป่าอเมซอน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1551727041-5b347d65b633?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/-8bzGIH68T0" },
+            { "id": 29, "title": "สลอธ สัตว์ที่เชื่องช้าที่สุด", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
+            { "id": 30, "title": "คาปิบารา หนูยักษ์ใจดี", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1580227918883-9bfa6a12b91c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/P_9QKcrCPnE" },
+            { "id": 31, "title": "นกทูแคน จะงอยปากใหญ่", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1517594422361-5e182390a18f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
+            { "id": 32, "title": "หมีกริซลี แห่งอเมริกาเหนือ", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
+            { "id": 33, "title": "กวางมูส เขายักษ์", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1501705388883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+            { "id": 34, "title": "กบลูกศรพิษ สีสันแห่งอันตราย", "category": "สัตว์ครึ่งบกครึ่งน้ำ", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
+            { "id": 35, "title": "เต่ายักษ์กาลาปากอส", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
+            { "id": 36, "title": "อีกัวน่า มังกรจิ๋ว", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
+
+            // --- ออสเตรเลีย & โอเชียเนีย (Australia / Oceania) ---
+            { "id": 37, "title": "จิงโจ้ นักกระโดดแห่งออสเตรเลีย", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564750975191-0ed807751ea1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/0Py7KuFq26w" },
+            { "id": 38, "title": "โคอาลา หมีต้นยูคาลิปตัส", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1535083252446-faea8c139ce6?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/jupT6Wqvy1o" },
+            { "id": 39, "title": "ตุ่นปากเป็ด สัตว์ประหลาดมีพิษ", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+            { "id": 40, "title": "นกอีมู นกยักษ์แห่งออสเตรเลีย", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+            { "id": 41, "title": "แทสเมเนียนเดวิล", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+            { "id": 42, "title": "วอมแบต จอมขุดดิน", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+            { "id": 43, "title": "นกกีวี สัญลักษณ์แห่งนิวซีแลนด์", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+
+            // --- ขั้วโลก (Polar Regions) ---
+            { "id": 44, "title": "วิถีชีวิตหมีขั้วโลก", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
+            { "id": 45, "title": "เพนกวินจักรพรรดิ", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+            { "id": 46, "title": "สุนัขจิ้งจอกอาร์กติก", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+            { "id": 47, "title": "วอลรัส เขี้ยวยักษ์", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+            { "id": 48, "title": "นาร์วาฬ ยูนิคอร์นแห่งท้องทะเล", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+
+            // --- ใต้ทะเล & สัตว์น้ำ (Oceans / Aquatic) ---
+            { "id": 49, "title": "ความลับของฉลามขาว", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+            { "id": 50, "title": "วาฬออร์ก้า นักล่าแห่งมหาสมุทร", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+            { "id": 51, "title": "เต่าทะเลพันปี", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
+            { "id": 52, "title": "ปลากระเบนแมนตา", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+            { "id": 53, "title": "โลมาแสนรู้", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1607153333880-9975765796a5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/f-Sd6xiJo90" },
+            { "id": 54, "title": "วาฬสีน้ำเงิน สัตว์ใหญ่ที่สุดในโลก", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+            { "id": 55, "title": "วาฬหลังค่อม นักเต้นระบำใต้น้ำ", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1582967605703-92c2db5e2d63?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+            { "id": 56, "title": "หมึกยักษ์ จ้าวปัญญา", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+            { "id": 57, "title": "ม้าน้ำ พ่อลูกอ่อน", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1607153333880-9975765796a5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/f-Sd6xiJo90" },
+            { "id": 58, "title": "แมงกะพรุน สิ่งมีชีวิตโปร่งแสง", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
+            { "id": 59, "title": "นากทะเล นักดำน้ำขี้เล่น", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1564750975191-0ed807751ea1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/0Py7KuFq26w" },
+
+            // --- ยุโรป และอื่นๆ (Europe / Others) ---
+            { "id": 60, "title": "หมาป่าสีเทา ผู้พิทักษ์ผืนป่า", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+
+            // --- งูพิษ และ อสรพิษร้าย (Venomous Snakes) ---
+            { "id": 61, "title": "งูแบล็คแมมบ้า อสรพิษแห่งแอฟริกา", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
+            { "id": 62, "title": "งูหางกระดิ่ง เพชฌฆาตทะเลทราย", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/DyD6jx8Kq44" },
+            { "id": 63, "title": "งูไทปันโพ้นทะเล พิษร้ายที่สุดในโลก", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+            { "id": 64, "title": "งูเหลือมยักษ์ นักล่าไร้พิษ", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1532587523171-705a631f47c8?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
+            
+            // --- สายพันธุ์กิ้งก่า (Lizards & Chameleons) ---
+            { "id": 65, "title": "กิ้งก่าคามิเลียน นักพรางตัวขั้นเทพ", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+            { "id": 66, "title": "อิกัวน่าทะเล กาลาปากอส", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/-8bzGIH68T0" },
+            { "id": 67, "title": "กิล่ามอนสเตอร์ กิ้งก่ามีพิษ", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+            { "id": 68, "title": "กิ้งก่าแผงคอ วิ่งสู้ฟัด", "category": "สัตว์เลื้อยคลาน", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+
+            // --- สัตว์น้ำ และ สัตว์ทะเลอันตราย/หายาก (Aquatic & Dangerous Marine Life) ---
+            { "id": 69, "title": "แมงกะพรุนกล่อง พิษร้ายแห่งท้องทะเล", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" },
+            { "id": 70, "title": "หมึกสายวงน้ำเงิน สวยซ่อนพิษ", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/HKKxA6uU_OA" },
+            { "id": 71, "title": "ปลาปิรันย่า ฝูงมฤตยูน้ำจืด", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+            { "id": 72, "title": "ปลาแองเกลอร์ ปีศาจใต้ทะเลลึก", "category": "สัตว์น้ำ/หายาก", "image": "https://images.unsplash.com/photo-1551244072-5d12893278ab?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+            { "id": 73, "title": "โลมาสีชมพู อเมซอน", "category": "สัตว์น้ำ/หายาก", "image": "https://images.unsplash.com/photo-1607153333880-9975765796a5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/f-Sd6xiJo90" },
+            { "id": 74, "title": "ฉลามหัวค้อน นักล่าแห่งมหาสมุทร", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+
+            // --- สัตว์บก หายาก และ อันตรายสุดขั้ว (Rare & Dangerous Terrestrial) ---
+            { "id": 75, "title": "แมงมุมแม่ม่ายดำ", "category": "แมลง-แมง/อันตราย", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+            { "id": 76, "title": "แมงป่องเดธสตอล์กเกอร์", "category": "แมลง-แมง/อันตราย", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WmWotkSQA2w" },
+            { "id": 77, "title": "สมเสร็จ สัตว์ดึกดำบรรพ์", "category": "สัตว์เลี้ยงลูกด้วยนม/หายาก", "image": "https://images.unsplash.com/photo-1540126034813-121bf29033d2?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/GxeFoDesuzw" },
+            { "id": 78, "title": "ตัวลิ่น (พังพอนเกล็ด) เสี่ยงสูญพันธุ์", "category": "สัตว์เลี้ยงลูกด้วยนม/หายาก", "image": "https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
+            { "id": 79, "title": "ควายป่าแอฟริกัน จอมโหด", "category": "สัตว์เลี้ยงลูกด้วยนม/อันตราย", "image": "https://images.unsplash.com/photo-1501705388883-4ed8a543392c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/NTuhP6VOUG8" },
+            { "id": 80, "title": "นกคาสโซวารี นกอันตรายที่สุดในโลก", "category": "สัตว์ปีก/อันตราย", "image": "https://images.unsplash.com/photo-1552055611-e6e73715c0e1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+            { "id": 81, "title": "เสือพูม่า สิงโตภูเขา", "category": "สัตว์เลี้ยงลูกด้วยนม/อันตราย", "image": "https://images.unsplash.com/photo-1551727041-5b347d65b633?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/-8bzGIH68T0" },
+            { "id": 82, "title": "หมาป่าโคโยตี้", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+
+            // --- นก และ สัตว์ปีก (Birds & Avian) ---
+            { "id": 83, "title": "นกเค้าแมวหิมะ นักล่าแห่งอาร์กติก", "category": "สัตว์ปีก/นักล่า", "image": "https://images.unsplash.com/photo-1518928420658-00bbfbd5e381?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+            { "id": 84, "title": "ฟลามิงโก้ ฝูงนกสีชมพู", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1498855926480-d98e83099315?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+            { "id": 85, "title": "นกเงือก สัญลักษณ์แห่งป่าสมบูรณ์", "category": "สัตว์ปีก/หายาก", "image": "https://images.unsplash.com/photo-1550853024-fae8cd4be47f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
+            { "id": 86, "title": "มาคอว์ นกแก้วแสนรู้", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1552728089-571692df9970?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WREnhOipq-g" },
+            { "id": 87, "title": "ฮัมมิงเบิร์ด จิ๋วแต่แจ๋ว", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1550159930-40066082a4fc?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/FJ6Uj1502tU" },
+            { "id": 88, "title": "เหยี่ยวเพเรกริน เจ้าเวหาที่เร็วที่สุด", "category": "สัตว์ปีก/นักล่า", "image": "https://images.unsplash.com/photo-1611689342806-0863700ce7e4?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/-8bzGIH68T0" },
+            { "id": 89, "title": "อัลบาทรอส นักเดินทางแห่งท้องทะเล", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1558237748-0382898cf8f3?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+            { "id": 90, "title": "นกแร้ง คนเก็บกวาดซากแห่งธรรมชาติ", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1564750975191-0ed807751ea1?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+            { "id": 91, "title": "นกกระเต็นน้อย ราชานักประดาน้ำ", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1590422749906-8d6ef5e8eb9c?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/f-Sd6xiJo90" },
+            { "id": 92, "title": "ปักษาสวรรค์ ราชาแห่งการเต้นเกี้ยวพาราสี", "category": "สัตว์ปีก/หายาก", "image": "https://images.unsplash.com/photo-1517594422361-5e182390a18f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/7RlBGFAESxw" },
+            { "id": 93, "title": "นกกระสา ปากยาวทะลวงปลา", "category": "สัตว์ปีก", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
+            { "id": 94, "title": "นกฮูกตาโต ผู้พิทักษ์รัตติกาล", "category": "สัตว์ปีก/นักล่า", "image": "https://images.unsplash.com/photo-1579730041498-cbf38287e07a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+
+            // --- แมงมุม และ สัตว์พิษอันตราย (Spiders & Venomous Animals) ---
+            { "id": 95, "title": "แมงมุมทารันทูล่า ยักษ์ขนปุย", "category": "แมลง-แมง/มีพิษ", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+            { "id": 96, "title": "แมงมุมใยกรวยซิดนีย์ เพชฌฆาตออสเตรเลีย", "category": "แมลง-แมง/อันตราย", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+            { "id": 97, "title": "แมงมุมบราซิลเลียนวันเดอริง (แมงมุมกล้วย)", "category": "แมลง-แมง/อันตราย", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/WUbQE3TuAkQ" },
+            { "id": 98, "title": "แมงมุมแม่ม่ายน้ำตาล", "category": "แมลง-แมง/อันตราย", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8kDmSBQqMFM" },
+            { "id": 99, "title": "ตะขาบยักษ์อเมซอน", "category": "แมลง-แมง/มีพิษ", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/8G1b_EMYWpE" },
+            { "id": 100, "title": "มดกระสุน (Bullet Ant) เจ็บปวดที่สุด", "category": "แมลง-แมง/มีพิษ", "image": "https://images.unsplash.com/photo-1551085254-e96b210db58a?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/aYGX-s5Vqkw" },
+            { "id": 101, "title": "กบสีทองมีพิษ สวยประหาร", "category": "สัตว์ครึ่งบกครึ่งน้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1616012480717-fd9867059ca0?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/-8bzGIH68T0" },
+            { "id": 102, "title": "หอยเต้าปูน นักฆ่าเงียบใต้น้ำ", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/VhOYOji861A" },
+            { "id": 103, "title": "แมงกะพรุนไฟหมวกโปรตุเกส", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/SDt_HX9R_AY" },
+            { "id": 104, "title": "ปลาหิน (Stonefish) พรางตัวเนียน", "category": "สัตว์น้ำ/อันตราย", "image": "https://images.unsplash.com/photo-1620101567150-128a1fb4d01b?w=500&q=80", "synopsisUrl": "#", "fullStoryUrl": "https://youtu.be/fJ2FP9y3iLo" }
+        ];
+
+        const ITEMS_PER_PAGE = 18; 
+        let currentPage = 1;
+        let filteredStories = [...stories];
+        let favoriteIds = JSON.parse(localStorage.getItem('animal_favorites')) || [];
+
+        let isYtApiReady = false;
+        let ytPlayer = null;
+        let currentPlayingStoryIndex = -1; 
+
+        function onYouTubeIframeAPIReady() {
+            isYtApiReady = true;
+        }
+
+        // --- ฟังก์ชันสร้างการ์ด 3 มิติ (ใช้ร่วมกัน) ---
+        function generate3DCardHTML(story, mainIndex, isFav) {
+            return `
+            <div class="card-scene w-full max-w-[120px] sm:max-w-[160px] aspect-[2/3] cursor-pointer relative z-10 hover:z-20">
+                <div class="card-object w-full h-full">
+                    <!-- พื้นหลัง/กรอบการ์ด -->
+                    <div class="card-bg"></div>
+                    
+                    <!-- ปุ่มหัวใจ (ลอยสูงสุด) -->
+                    <button onclick="toggleFavorite(event, ${story.id})" class="card-action-layer p-1.5 bg-black/60 rounded-full hover:bg-black/90 transition-colors backdrop-blur-md shadow-[0_4px_10px_rgba(0,0,0,0.6)] border border-gray-600/50">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4 transition-colors duration-200 ${isFav ? 'text-red-500 fill-red-500' : 'text-white'}" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </button>
+                    
+                    <!-- เนื้อหา (รูปลอยเหนือพื้นหลัง) -->
+                    <div onclick="openModal(${mainIndex})" class="card-content-layer">
+                        <img src="${story.image}" alt="${escapeHtml(story.title)}" loading="lazy" class="w-full h-full object-cover">
+                        <!-- ไล่สีให้ข้อความอ่านง่าย -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent opacity-90"></div>
+                        
+                        <div class="absolute bottom-0 left-0 right-0 p-1.5 sm:p-3 pb-2 sm:pb-3">
+                            <h3 class="text-[10px] sm:text-xs font-bold text-white leading-tight mb-0.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
+                                ${story.title}
+                            </h3>
+                            <p class="text-[8px] sm:text-[9px] text-emerald-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] line-clamp-1">${story.category}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- แสงสะท้อน -->
+                    <div class="card-glare"></div>
+                </div>
+            </div>
+            `;
+        }
+
+        // --- ฟังก์ชันควบคุมเอฟเฟกต์ 3D ด้วย JavaScript ---
+        function applyTiltEffect() {
+            const cards = document.querySelectorAll('.card-scene');
+            
+            cards.forEach(card => {
+                // ข้ามถ้าเคยใส่ Event ไปแล้ว
+                if (card.classList.contains('tilt-ready')) return;
+                card.classList.add('tilt-ready');
+
+                const object = card.querySelector('.card-object');
+                const bg = card.querySelector('.card-bg');
+                const glare = card.querySelector('.card-glare');
+
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left; 
+                    const y = e.clientY - rect.top;  
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    // คำนวณองศาการหมุน (เลขยิ่งเยอะยิ่งเอียงมาก)
+                    const rotateX = ((y - centerY) / centerY) * -15; 
+                    const rotateY = ((x - centerX) / centerX) * 15;
+
+                    object.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                    
+                    // ปรับเงาฐานให้ตรงข้ามกับทิศทางที่เอียง
+                    if(bg) {
+                        const shadowX = (x - centerX) / centerX * -10;
+                        const shadowY = (y - centerY) / centerY * -10;
+                        bg.style.boxShadow = `${shadowX}px ${shadowY + 15}px 25px rgba(0,0,0,0.6)`;
+                    }
+                    
+                    // ปรับตำแหน่งแสงสะท้อน
+                    if(glare) {
+                       const moveX = (x / rect.width) * 100;
+                       const moveY = (y / rect.height) * 100;
+                       glare.style.background = `radial-gradient(circle at ${moveX}% ${moveY}%, rgba(255,255,255,0.2) 0%, transparent 60%)`;
+                       glare.style.opacity = '1';
+                    }
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    // คืนค่าทุกอย่างเมื่อเอาเมาส์ออก
+                    object.style.transform = `rotateX(0deg) rotateY(0deg)`;
+                    if(bg) bg.style.boxShadow = ''; 
+                    if(glare) glare.style.opacity = '0';
+                });
+            });
+        }
+
+        function renderStories() {
+            const grid = document.getElementById('storyGrid');
+            const noResult = document.getElementById('noResult');
+            
+            const totalPages = Math.ceil(filteredStories.length / ITEMS_PER_PAGE) || 1;
+            
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            updatePaginationUI(totalPages);
+
+            const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIdx = startIdx + ITEMS_PER_PAGE;
+            const displayData = filteredStories.slice(startIdx, endIdx);
+
+            if (displayData.length === 0) {
+                grid.innerHTML = '';
+                noResult.classList.remove('hidden');
+                return;
+            } else {
+                noResult.classList.add('hidden');
+            }
+
+            const htmlContent = displayData.map(story => {
+                const mainIndex = stories.findIndex(s => s.id === story.id);
+                const isFav = favoriteIds.includes(story.id);
+                return generate3DCardHTML(story, mainIndex, isFav);
+            }).join('');
+
+            grid.innerHTML = htmlContent;
+            
+            // เรียกใช้ฟังก์ชัน 3D เอฟเฟกต์หลังสร้าง element เสร็จ
+            setTimeout(applyTiltEffect, 50);
+        }
+
+        function renderFavoritesModal() {
+            const grid = document.getElementById('favoritesGrid');
+            const noFavsMsg = document.getElementById('noFavoritesMsg');
+            
+            const favStoriesData = stories.filter(story => favoriteIds.includes(story.id));
+            
+            if (favStoriesData.length === 0) {
+                grid.innerHTML = '';
+                noFavsMsg.classList.remove('hidden');
+                noFavsMsg.classList.add('flex');
+            } else {
+                noFavsMsg.classList.add('hidden');
+                noFavsMsg.classList.remove('flex');
+                
+                grid.innerHTML = favStoriesData.map(story => {
+                    const mainIndex = stories.findIndex(s => s.id === story.id);
+                    return generate3DCardHTML(story, mainIndex, true);
+                }).join('');
+                
+                // เรียกใช้ 3D เอฟเฟกต์ในหน้าต่างรายการโปรดด้วย
+                setTimeout(applyTiltEffect, 50);
+            }
+        }
+
+        // --- ฟังก์ชันพื้นฐานอื่นๆ (ไม่ถูกเปลี่ยนแปลง) ---
+        function updatePaginationUI(totalPages) {
+            document.getElementById('pageInfo').innerText = `หน้า ${currentPage} / ${totalPages}`;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderStories();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredStories.length / ITEMS_PER_PAGE);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderStories();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function handleSearch(val) {
+            const searchText = val.trim().toLowerCase();
+            if (searchText !== '') {
+                filteredStories = stories.filter(story => 
+                    story.title.toLowerCase().includes(searchText) || 
+                    story.category.toLowerCase().includes(searchText)
+                );
+            } else {
+                filteredStories = [...stories];
+            }
+            currentPage = 1; 
+            renderStories();
+        }
+
+        function toggleFavorite(event, storyId) {
+            event.stopPropagation(); 
+            const index = favoriteIds.indexOf(storyId);
+            if (index > -1) {
+                favoriteIds.splice(index, 1); 
+            } else {
+                favoriteIds.push(storyId); 
+            }
+            localStorage.setItem('animal_favorites', JSON.stringify(favoriteIds));
+            renderStories();
+            if (!document.getElementById('favoritesModal').classList.contains('hidden')) {
+                renderFavoritesModal();
+            }
+        }
+
+        function goHome() {
+            closeFavoritesModal();
+            closeModal();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById('navHome').classList.replace('text-gray-400', 'text-emerald-500');
+            document.getElementById('navFav').classList.replace('text-emerald-500', 'text-gray-400');
+        }
+
+        function openFavoritesModal() {
+            document.getElementById('navFav').classList.replace('text-gray-400', 'text-emerald-500');
+            document.getElementById('navHome').classList.replace('text-emerald-500', 'text-gray-400');
+            renderFavoritesModal();
+            const favModal = document.getElementById('favoritesModal');
+            favModal.classList.remove('hidden');
+            favModal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFavoritesModal() {
+            const favModal = document.getElementById('favoritesModal');
+            favModal.classList.add('hidden');
+            favModal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+            document.getElementById('navHome').classList.replace('text-gray-400', 'text-emerald-500');
+            document.getElementById('navFav').classList.replace('text-emerald-500', 'text-gray-400');
+        }
+
+        function closeFavoritesOnOutside(event) {
+            if (event.target === document.getElementById('favoritesModal')) closeFavoritesModal();
+        }
+
+        // เพิ่มฟังก์ชันสำหรับเปิด Modal ด้วย ID ของสัตว์
+        function openModalById(storyId) {
+            const mainIndex = stories.findIndex(s => s.id === storyId);
+            if (mainIndex !== -1) {
+                openModal(mainIndex);
+            }
+        }
+
+        function openModal(mainIndex) {
+            const story = stories[mainIndex];
+            if(!story) return;
+
+            const modal = document.getElementById('selectionModal');
+            document.getElementById('modalImage').src = story.image;
+            document.getElementById('modalTitle').innerText = story.title;
+            document.getElementById('btnSynopsis').href = story.synopsisUrl;
+            
+            const btnVideo = document.getElementById('btnFullStory');
+            if (!story.fullStoryUrl || story.fullStoryUrl === '#' || story.fullStoryUrl.trim() === '') {
+                btnVideo.classList.add('opacity-50', 'cursor-not-allowed');
+                btnVideo.onclick = (e) => e.preventDefault();
+            } else {
+                btnVideo.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnVideo.onclick = () => openVideoModal(mainIndex);
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('selectionModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if(document.getElementById('favoritesModal').classList.contains('hidden')){
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function closeModalOnOutside(event) {
+            if (event.target === document.getElementById('selectionModal')) closeModal();
+        }
+
+        function getYoutubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function openVideoModal(mainIndex) {
+            closeModal(); 
+            if (!document.getElementById('favoritesModal').classList.contains('hidden')) {
+                closeFavoritesModal();
+            }
+            
+            currentPlayingStoryIndex = mainIndex;
+            const story = stories[mainIndex];
+            if(!story) return;
+
+            const videoModal = document.getElementById('videoModal');
+            const videoLoader = document.getElementById('videoLoader');
+            const ytContainer = document.getElementById('ytPlayerContainer');
+            const normalIframe = document.getElementById('normalIframe');
+            
+            document.getElementById('nowPlayingTitle').innerText = `กำลังเล่น: ${story.title}`;
+            videoLoader.style.display = 'flex';
+            const videoId = getYoutubeId(story.fullStoryUrl);
+
+            if (videoId) {
+                normalIframe.classList.add('hidden');
+                normalIframe.src = ''; 
+                ytContainer.classList.remove('hidden');
+
+                if (isYtApiReady) {
+                    if (!ytPlayer) {
+                        // เพิ่มการตั้งค่า width และ height เป็น 100% ให้แสดงผลเต็มแนวตั้ง
+                        ytPlayer = new YT.Player('videoFrame', {
+                            height: '100%',
+                            width: '100%',
+                            videoId: videoId,
+                            playerVars: { 'autoplay': 1, 'playsinline': 1, 'rel': 0 },
+                            events: {
+                                'onReady': (event) => {
+                                    videoLoader.style.display = 'none';
+                                    event.target.playVideo();
+                                },
+                                'onStateChange': onPlayerStateChange
+                            }
+                        });
+                    } else {
+                        ytPlayer.loadVideoById(videoId);
+                        videoLoader.style.display = 'none';
+                    }
+                } else {
+                    setTimeout(() => openVideoModal(mainIndex), 500);
+                    return;
+                }
+            } else {
+                ytContainer.classList.add('hidden');
+                if (ytPlayer && typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
+                normalIframe.classList.remove('hidden');
+                normalIframe.src = story.fullStoryUrl;
+                setTimeout(() => { videoLoader.style.display = 'none'; }, 1000);
+            }
+
+            videoModal.classList.remove('hidden');
+            videoModal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data === 0) playNextStory();
+            if (event.data === 1) document.getElementById('videoLoader').style.display = 'none';
+        }
+
+        function playNextStory() {
+            let nextIndex = currentPlayingStoryIndex + 1;
+            while (nextIndex < stories.length) {
+                const nextStory = stories[nextIndex];
+                if (nextStory.fullStoryUrl && nextStory.fullStoryUrl !== '#' && nextStory.fullStoryUrl.trim() !== '') {
+                    openVideoModal(nextIndex);
+                    return; 
+                }
+                nextIndex++;
+            }
+            closeVideoModal();
+        }
+
+        function closeVideoModal() {
+            const videoModal = document.getElementById('videoModal');
+            if (ytPlayer && typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
+            document.getElementById('normalIframe').src = ''; 
+            currentPlayingStoryIndex = -1;
+            videoModal.classList.add('hidden');
+            videoModal.classList.remove('flex');
+            document.body.style.overflow = 'auto'; 
+        }
+
+        function closeVideoModalOnOutside(event) {
+            if (event.target === document.getElementById('videoModal')) closeVideoModal();
+        }
+
+        // Initialize หน้าแรก
+        renderStories(); 
+
+    </script>
+</body>
+</html>
