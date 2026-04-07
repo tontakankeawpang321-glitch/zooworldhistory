@@ -41,7 +41,7 @@
             height: 100%;
             /* ทำให้ลูกๆ อยู่ในปริภูมิ 3 มิติ */
             transform-style: preserve-3d;
-            transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         
         .card-scene:not(:hover) .card-object {
@@ -57,15 +57,13 @@
             border: 1px solid #374151;
             /* เงาฐาน */
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-            transition: box-shadow 0.1s, border-color 0.3s;
-        }
-        
-        .card-scene:not(:hover) .card-bg {
-            transition: box-shadow 0.5s ease-out, border-color 0.3s;
+            transition: all 0.3s ease;
         }
         
         .card-scene:hover .card-bg {
-            border-color: #10b981;
+            /* เอฟเฟกต์เรืองแสง (Glow) เมื่อ Hover */
+            border-color: #34d399; 
+            box-shadow: 0 15px 25px -5px rgba(16, 185, 129, 0.4), inset 0 0 15px rgba(16, 185, 129, 0.2);
         }
         
         .card-content-layer {
@@ -77,6 +75,8 @@
             overflow: hidden;
             backface-visibility: hidden;
             box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+            /* ตัดขอบภาพไม่ให้ทะลุออก */
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
         }
         
         .card-action-layer {
@@ -98,6 +98,28 @@
             /* แสงสะท้อนอยู่เหนือรูปนิดหน่อย */
             transform: translateZ(32px); 
             mix-blend-mode: overlay;
+        }
+
+        /* --- เอฟเฟกต์แสงวิ่งพาด (Shine Sweep) --- */
+        .shine-effect {
+            position: absolute;
+            top: 0; 
+            left: -100%;
+            width: 50%; 
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            z-index: 15;
+            pointer-events: none;
+        }
+        
+        .card-scene:hover .shine-effect {
+            animation: shine-sweep 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes shine-sweep {
+            0% { left: -100%; }
+            100% { left: 200%; }
         }
     </style>
 </head>
@@ -505,8 +527,8 @@
         // --- ฟังก์ชันสร้างการ์ด 3 มิติ (ใช้ร่วมกัน) ---
         function generate3DCardHTML(story, mainIndex, isFav) {
             return `
-            <div class="card-scene w-full max-w-[120px] sm:max-w-[160px] aspect-[2/3] cursor-pointer relative z-10 hover:z-20">
-                <div class="card-object w-full h-full">
+            <div class="card-scene w-full max-w-[120px] sm:max-w-[160px] aspect-[2/3] cursor-pointer relative z-10 hover:z-20 group">
+                <div class="card-object w-full h-full rounded-xl">
                     <!-- พื้นหลัง/กรอบการ์ด -->
                     <div class="card-bg"></div>
                     
@@ -519,19 +541,24 @@
                     
                     <!-- เนื้อหา (รูปลอยเหนือพื้นหลัง) -->
                     <div onclick="openModal(${mainIndex})" class="card-content-layer">
-                        <img src="${story.image}" alt="${escapeHtml(story.title)}" loading="lazy" class="w-full h-full object-cover">
-                        <!-- ไล่สีให้ข้อความอ่านง่าย -->
-                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent opacity-90"></div>
+                        <img src="${story.image}" alt="${escapeHtml(story.title)}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-125">
                         
-                        <div class="absolute bottom-0 left-0 right-0 p-1.5 sm:p-3 pb-2 sm:pb-3">
+                        <!-- เอฟเฟกต์แสงวิ่งพาด (Shine) -->
+                        <div class="shine-effect"></div>
+
+                        <!-- ไล่สีให้ข้อความอ่านง่าย -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        
+                        <!-- ข้อความที่จะเลื่อนขึ้นเล็กน้อยเมื่อถูก Hover -->
+                        <div class="absolute bottom-0 left-0 right-0 p-1.5 sm:p-3 pb-2 sm:pb-3 transform transition-transform duration-300 group-hover:-translate-y-1">
                             <h3 class="text-[10px] sm:text-xs font-bold text-white leading-tight mb-0.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] line-clamp-2">
                                 ${story.title}
                             </h3>
-                            <p class="text-[8px] sm:text-[9px] text-emerald-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] line-clamp-1">${story.category}</p>
+                            <p class="text-[8px] sm:text-[9px] text-emerald-400 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] line-clamp-1 group-hover:text-emerald-300 transition-colors">${story.category}</p>
                         </div>
                     </div>
                     
-                    <!-- แสงสะท้อน -->
+                    <!-- แสงสะท้อน 3D -->
                     <div class="card-glare"></div>
                 </div>
             </div>
@@ -569,7 +596,8 @@
                     if(bg) {
                         const shadowX = (x - centerX) / centerX * -10;
                         const shadowY = (y - centerY) / centerY * -10;
-                        bg.style.boxShadow = `${shadowX}px ${shadowY + 15}px 25px rgba(0,0,0,0.6)`;
+                        // ลบ style เงาที่ถูกฝังด้วย JS ออก เพื่อให้ไปใช้ hover ของ CSS (.card-scene:hover .card-bg) แทน
+                        // bg.style.boxShadow = `${shadowX}px ${shadowY + 15}px 25px rgba(0,0,0,0.6)`;
                     }
                     
                     // ปรับตำแหน่งแสงสะท้อน
@@ -584,7 +612,6 @@
                 card.addEventListener('mouseleave', () => {
                     // คืนค่าทุกอย่างเมื่อเอาเมาส์ออก
                     object.style.transform = `rotateX(0deg) rotateY(0deg)`;
-                    if(bg) bg.style.boxShadow = ''; 
                     if(glare) glare.style.opacity = '0';
                 });
             });
