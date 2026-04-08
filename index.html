@@ -29,6 +29,22 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* --- 1. โค้ดสำหรับแบนเนอร์ไฮไลท์แบบสุ่ม --- */
+        .hero-banner {
+            width: 100%;
+            height: 14rem;
+            border-radius: 1rem;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #374151;
+            transition: background-image 0.8s ease-in-out;
+            cursor: pointer;
+        }
+        @media (min-width: 640px) { .hero-banner { height: 22rem; } }
+
         /* --- 3D Animated Card Effect --- */
         .card-scene {
             perspective: 1500px; 
@@ -44,12 +60,10 @@
             width: 100%;
             height: 100%;
             transform-style: preserve-3d;
-            transition: transform 0.1s; /* Smooth follow cursor */
+            transition: transform 0.1s;
         }
         
-        .card-scene:not(:hover) .card-object {
-            transition: transform 0.5s ease-out;
-        }
+        .card-scene:not(:hover) .card-object { transition: transform 0.5s ease-out; }
         
         .card-bg {
             position: absolute;
@@ -69,12 +83,11 @@
         .card-content-layer {
             position: absolute;
             inset: 0;
-            transform: translateZ(20px); 
+            transform: translateZ(30px); 
             border-radius: 0.75rem;
             overflow: hidden;
             backface-visibility: hidden;
             box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
-            /* Fix border radius clipping in webkit */
             -webkit-mask-image: -webkit-radial-gradient(white, black);
         }
         
@@ -82,11 +95,10 @@
             position: absolute;
             top: 0.5rem;
             right: 0.5rem;
-            transform: translateZ(40px); 
+            transform: translateZ(50px); 
             z-index: 20;
         }
 
-        /* --- เอฟเฟกต์แสงวิ่งพาด (Shine Sweep) --- */
         .shine-effect {
             position: absolute;
             top: 0; 
@@ -99,16 +111,13 @@
             pointer-events: none;
         }
         
-        .card-scene:hover .shine-effect {
-            animation: shine-sweep 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .card-scene:hover .shine-effect { animation: shine-sweep 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
 
         @keyframes shine-sweep {
             0% { left: -100%; }
             100% { left: 200%; }
         }
         
-        /* Line clamp for category to avoid overlap */
         .line-clamp-1 {
             display: -webkit-box;
             -webkit-line-clamp: 1;
@@ -128,10 +137,27 @@
             <p class="text-gray-400 text-sm sm:text-base">สำรวจชีวิตธรรมชาติและสัตว์ป่าทั่วโลก (เล่นต่อเนื่องอัตโนมัติ)</p>
             <div class="h-1 w-24 bg-emerald-500 mx-auto mt-4 rounded-full opacity-70"></div>
         </div>
+
+        <!-- แบนเนอร์ไฮไลท์แบบสุ่ม (คลิกได้) -->
+        <div class="w-full mb-8 relative">
+            <div id="heroBanner" class="hero-banner flex flex-col justify-end p-4 sm:p-6 group" onclick="openHighlightModal()">
+                <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent group-hover:via-gray-900/30 transition-all"></div>
+                <div class="relative z-10 transform group-hover:scale-[1.01] transition-transform duration-300">
+                    <span id="heroCategory" class="inline-block px-3 py-1 bg-emerald-500/90 backdrop-blur text-white text-[10px] sm:text-xs font-bold rounded-full mb-2 border border-emerald-400/50 shadow-lg">
+                        🌟 กำลังโหลดไฮไลท์...
+                    </span>
+                    <h2 id="heroTitle" class="text-xl sm:text-3xl font-bold text-white drop-shadow-xl line-clamp-2">...</h2>
+                    <p class="text-gray-200 text-xs sm:text-sm mt-1 sm:mt-2 drop-shadow flex items-center gap-1 bg-black/30 inline-flex px-2 py-1 rounded-lg backdrop-blur-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        คลิกเพื่อรับชม
+                    </p>
+                </div>
+            </div>
+        </div>
         
-        <div class="flex flex-col gap-4 mb-6 mt-4">
+        <div class="flex flex-col gap-4 mb-2 mt-4">
             <div class="flex flex-col sm:flex-row justify-between items-center px-1 gap-4">
-                <h2 class="text-xl font-bold text-white hidden sm:block">รายการทั้งหมด</h2>
+                <h2 class="text-xl font-bold text-white hidden sm:block">รายการสารคดี (ปัดเพื่อเลื่อน)</h2>
                 
                 <div class="relative w-full sm:w-72 group">
                     <input type="text" 
@@ -149,7 +175,7 @@
         </div>
 
         <!-- แถบข้อความ 5 สัตว์อันตราย -->
-        <div onclick="toggleDangerPanel()" class="mb-6 mx-1 sm:mx-2 bg-gray-800 border border-red-500/30 rounded-xl p-3 sm:p-4 flex items-center justify-between cursor-pointer hover:border-red-500/60 hover:bg-gray-700 transition-all shadow-lg group">
+        <div onclick="toggleDangerPanel()" class="mb-4 mx-1 sm:mx-2 bg-gray-800 border border-red-500/30 rounded-xl p-3 sm:p-4 flex items-center justify-between cursor-pointer hover:border-red-500/60 hover:bg-gray-700 transition-all shadow-lg group">
             <div class="flex items-center gap-3 sm:gap-4">
                 <div class="bg-red-500/20 p-2.5 rounded-full group-hover:scale-110 transition-transform">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -168,28 +194,28 @@
             </div>
         </div>
         
-        <!-- ปรับกริดให้รองรับมือถือดีขึ้น เริ่มที่ 2 คอลัมน์ -->
-        <div id="storyGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-6 justify-items-center mb-8 px-1 sm:px-2">
+        <!-- Grid 3 คอลัมน์ -->
+        <div id="storyGrid" class="grid grid-cols-3 gap-2 sm:gap-4 justify-items-center mb-8 px-1 sm:px-2">
             <!-- ข้อมูลการ์ดจะถูกใส่ที่นี่ผ่าน JS -->
         </div>
 
-        <!-- ระบบ Pagination (แบ่งหน้า) -->
-        <div id="paginationControls" class="flex justify-between items-center bg-gray-800 p-3 rounded-lg border border-gray-700 max-w-2xl mx-auto mb-8 shadow-lg">
-            <button id="prevBtn" onclick="prevPage()" class="px-4 sm:px-5 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-medium transition-colors shadow-sm">
+        <!-- ระบบ Pagination -->
+        <div id="paginationControls" class="flex justify-between items-center bg-gray-800 p-3 rounded-lg border border-gray-700 max-w-2xl mx-auto mb-8 shadow-lg mt-2">
+            <button id="prevBtn" onclick="prevPage()" class="px-3 sm:px-5 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed rounded text-xs sm:text-sm font-medium transition-colors shadow-sm">
                 ย้อนกลับ
             </button>
-            <span id="pageInfo" class="text-sm font-semibold text-emerald-400">หน้า 1 / 1</span>
-            <button id="nextBtn" onclick="nextPage()" class="px-4 sm:px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white disabled:bg-gray-700 disabled:text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed rounded text-sm font-medium transition-colors shadow-sm">
+            <span id="pageInfo" class="text-xs sm:text-sm font-semibold text-emerald-400">หน้า 1 / 1</span>
+            <button id="nextBtn" onclick="nextPage()" class="px-3 sm:px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white disabled:bg-gray-700 disabled:text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed rounded text-xs sm:text-sm font-medium transition-colors shadow-sm">
                 ถัดไป
             </button>
         </div>
 
-        <div id="noResult" class="hidden text-center text-gray-500 mt-10 w-full col-span-full pb-10">
+        <div id="noResult" class="hidden text-center text-gray-500 mt-10 w-full pb-10">
             <p>ไม่พบรายการที่ค้นหา</p>
         </div>
     </div>
 
-    <!-- แถบเมนูด้านล่าง (Bottom Navigation) -->
+    <!-- แถบเมนูด้านล่าง -->
     <nav class="fixed bottom-0 w-full bg-gray-900 border-t border-gray-800 z-40 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.3)]">
         <div class="flex justify-around items-center p-2 max-w-md mx-auto">
             <button onclick="goHome()" id="navHome" class="flex flex-col items-center w-full py-1 text-emerald-500 transition-colors">
@@ -226,14 +252,14 @@
         <div class="p-4 flex-grow overflow-y-auto pb-24 space-y-3">
             <p class="text-gray-400 text-xs mb-4">ข้อมูลต่อไปนี้คือตัวอย่างสัตว์ที่มีความอันตรายสูงในธรรมชาติ ควรระวังหากพบเจอ!</p>
             
-            <div onclick="openDangerModal(63)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
+            <div onclick="openDangerModal(1004)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
                 <span class="text-3xl drop-shadow-md group-hover:scale-110 transition-transform">🐍</span>
                 <div class="flex flex-col text-left">
                     <span class="text-white text-sm font-semibold">งูไทปันโพ้นทะเล</span>
                     <span class="text-red-400 text-xs mt-0.5">อสรพิษร้ายแรง</span>
                 </div>
             </div>
-            <div onclick="openDangerModal(69)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
+            <div onclick="openDangerModal(468)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
                 <span class="text-3xl drop-shadow-md group-hover:scale-110 transition-transform">🪼</span>
                 <div class="flex flex-col text-left">
                     <span class="text-white text-sm font-semibold">แมงกะพรุนกล่อง</span>
@@ -247,14 +273,14 @@
                     <span class="text-red-400 text-xs mt-0.5">ดุร้ายและหวงถิ่น</span>
                 </div>
             </div>
-            <div onclick="openDangerModal(15)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
+            <div onclick="openDangerModal(1005)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
                 <span class="text-3xl drop-shadow-md group-hover:scale-110 transition-transform">🐊</span>
                 <div class="flex flex-col text-left">
                     <span class="text-white text-sm font-semibold">จระเข้แม่น้ำไนล์</span>
                     <span class="text-red-400 text-xs mt-0.5">นักล่าซุ่มโจมตี</span>
                 </div>
             </div>
-            <div onclick="openDangerModal(101)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
+            <div onclick="openDangerModal(1006)" class="bg-gray-800 border border-red-500/20 rounded-xl p-3.5 flex items-center gap-4 hover:border-red-500/60 hover:bg-gray-700 transition-colors cursor-pointer group">
                 <span class="text-3xl drop-shadow-md group-hover:scale-110 transition-transform">🐸</span>
                 <div class="flex flex-col text-left">
                     <span class="text-white text-sm font-semibold">กบสีทองมีพิษ</span>
@@ -281,8 +307,8 @@
                 <div class="h-1 w-16 bg-red-500 mx-auto mt-3 rounded-full opacity-70"></div>
             </div>
 
+            <!-- หน้าต่าง Favorite ใช้ Grid เหมือนเดิมเพื่อให้ดูง่ายเวลาลิสเยอะๆ -->
             <div id="favoritesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6 justify-items-center">
-                <!-- ข้อมูลรายการโปรดจะแสดงที่นี่ -->
             </div>
 
             <div id="noFavoritesMsg" class="hidden flex-col items-center justify-center text-gray-500 mt-16 mb-10">
@@ -295,7 +321,7 @@
         </div>
     </div>
 
-    <!-- Selection Modal (หน้าต่างเลือกโหมด) ปรับ z-index เป็น 60 -->
+    <!-- Selection Modal -->
     <div id="selectionModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="closeModalOnOutside(event)">
         <div class="bg-gray-800 border border-gray-700 w-full max-w-sm rounded-2xl shadow-2xl modal-animate relative overflow-hidden flex flex-col">
             <div class="h-32 w-full relative">
@@ -341,7 +367,6 @@
             
             <div id="nowPlayingTitle" class="absolute -top-8 left-0 sm:left-2 text-emerald-400 text-sm font-semibold max-w-full truncate hidden sm:block"></div>
             
-            <!-- ปรับสัดส่วนวิดีโอเป็นแนวนอน 16:9 มาตรฐาน -->
             <div class="w-full aspect-video bg-black rounded-lg shadow-2xl overflow-hidden border border-gray-800 relative flex items-center justify-center">
                 <div id="videoLoader" class="absolute inset-0 flex items-center justify-center z-0 hidden">
                     <div class="loader"></div>
@@ -357,12 +382,10 @@
         </div>
     </div>
 
-    <!-- YouTube API Script -->
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // --- ส่วนประกาศตัวแปรที่ขาดหายไป ---
-        const ITEMS_PER_PAGE = 12; // จำนวนการ์ดต่อหน้า
+        const ITEMS_PER_PAGE = 9; // กำหนดให้แสดง 9 รายการต่อหน้า
         let currentPage = 1;
         let filteredStories = [];
         let favoriteIds = [];
@@ -370,6 +393,53 @@
         var isYtApiReady = false;
         var ytPlayer = null;
         var currentPlayingStoryIndex = -1; 
+
+        // ==========================================
+        // 🌟 ตั้งค่า ID ของสารคดีที่จะให้สุ่มแสดงบนแบนเนอร์
+        // ==========================================
+        const highlightSlideIds = [1, 7, 22, 76, 101, 102, 451, 503]; 
+        
+        let highlightPool = [];
+        let currentHighlightIndex = -1;
+        let highlightInterval;
+
+        function getNextHighlight() {
+            if (highlightPool.length === 0) {
+                // ก๊อปปี้ ID จาก const มาใส่ Pool และสับเปลี่ยนตำแหน่ง (Shuffle)
+                highlightPool = [...highlightSlideIds];
+                for (let i = highlightPool.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [highlightPool[i], highlightPool[j]] = [highlightPool[j], highlightPool[i]];
+                }
+            }
+            return highlightPool.pop(); // ดึงตัวสุดท้ายออกมาใช้ (รับประกันว่าไม่ซ้ำจนกว่าจะหมด)
+        }
+
+        function updateHighlight() {
+            const nextId = getNextHighlight();
+            // หาตำแหน่ง Index หลักใน array stories
+            const mainIndex = stories.findIndex(s => s.id === nextId);
+            
+            if (mainIndex !== -1) {
+                currentHighlightIndex = mainIndex;
+                const story = stories[mainIndex];
+
+                const heroBanner = document.getElementById('heroBanner');
+                const heroCategory = document.getElementById('heroCategory');
+                const heroTitle = document.getElementById('heroTitle');
+
+                heroBanner.style.backgroundImage = `url('${story.image}')`;
+                heroCategory.innerText = `🌟 แนะนำ: ${story.category}`;
+                heroTitle.innerText = story.title;
+            }
+        }
+
+        function openHighlightModal() {
+            if (currentHighlightIndex !== -1) {
+                openModal(currentHighlightIndex);
+            }
+        }
+        // ==========================================
 
         function onYouTubeIframeAPIReady() {
             isYtApiReady = true;
@@ -705,13 +775,18 @@ const stories = [
     { "id": 997, "title": "เสือดาวโบราณ", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "https://th.wikipedia.org/wiki/เสือดาว", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
     { "id": 998, "title": "ไฮยีน่ายักษ์ดึกดำบรรพ์", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1525877441566-ed814ec0b615?w=500&q=80", "synopsisUrl": "https://th.wikipedia.org/wiki/ไฮยีน่า", "fullStoryUrl": "https://youtu.be/grYNuHoVsHA" },
     { "id": 999, "title": "มนุษย์ถ้ำนีแอนเดอร์ทัล", "category": "สัตว์ดึกดำบรรพ์", "image": "https://images.unsplash.com/photo-1526726533690-5cbe9493f30d?w=500&q=80", "synopsisUrl": "https://th.wikipedia.org/wiki/นีแอนเดอร์ทัล", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
-    { "id": 1000, "title": "มนุษย์ปัจจุบัน (Homo Sapiens)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1526726533690-5cbe9493f30d?w=500&q=80", "synopsisUrl": "https://th.wikipedia.org/wiki/มนุษย์", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" }
+    { "id": 1000, "title": "มนุษย์ปัจจุบัน (Homo Sapiens)", "category": "สัตว์เลี้ยงลูกด้วยนม", "image": "https://images.unsplash.com/photo-1526726533690-5cbe9493f30d?w=500&q=80", "synopsisUrl": "https://th.wikipedia.org/wiki/มนุษย์", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+   { "id": 1001, "title": "ฉลามวาฬ", "category": "สัตว์น้ำ", "image": "https://images.unsplash.com/photo-1560275619-4662e36fa65c?w=500&q=80", "synopsisUrl": "https://th.wikipedia.org/wiki/ฉลามวาฬ", "fullStoryUrl": "https://youtu.be/iDgLHD1vFRg" },
+            { "id": 1004, "title": "งูไทปันโพ้นทะเล", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1534188753412-3e26d0d618d6?w=500&q=80", "synopsisUrl": "https://th.wikipedia.org/wiki/งูไทปันโพ้นทะเล", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+            { "id": 1005, "title": "จระเข้แม่น้ำไนล์", "category": "สัตว์เลื้อยคลาน/อันตราย", "image": "https://images.unsplash.com/photo-1518928420658-00bbfbd5e381?w=500&q=80", "synopsisUrl": "https://th.wikipedia.org/wiki/จระเข้แม่น้ำไนล์", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" },
+            { "id": 1006, "title": "กบสีทองมีพิษ", "category": "สัตว์สะเทินน้ำสะเทินบก/อันตราย", "image": "https://images.unsplash.com/photo-1558237748-0382898cf8f3?w=500&q=80", "synopsisUrl": "https://th.wikipedia.org/wiki/กบลูกศรพิษสีทอง", "fullStoryUrl": "https://youtu.be/VBFCILa2-0k" }
 ];
+         
 
-        // --- ส่วนที่ขาดหายไป: ฟังก์ชันสร้าง HTML สำหรับการ์ด ---
+        // HTML ของการ์ดแบบ Grid 3 คอลัมน์
         function generate3DCardHTML(story, mainIndex, isFav) {
             return `
-            <div class="card-scene group" onclick="openModal(${mainIndex})">
+            <div class="card-scene group w-full" onclick="openModal(${mainIndex})">
                 <div class="card-object">
                     <div class="card-bg"></div>
                     <div class="card-content-layer w-full h-full bg-gray-800">
@@ -720,14 +795,14 @@ const stories = [
                         <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent"></div>
                         
                         <div class="absolute bottom-0 w-full p-2 sm:p-3 flex flex-col justify-end">
-                            <span class="text-[9px] sm:text-[10px] text-emerald-400 font-medium mb-0.5 line-clamp-1 drop-shadow-md">${escapeHtml(story.category)}</span>
-                            <h3 class="text-xs sm:text-sm font-bold text-white leading-tight line-clamp-2 drop-shadow-lg">${escapeHtml(story.title)}</h3>
+                            <span class="text-[9px] sm:text-[10px] text-emerald-400 font-bold mb-0.5 drop-shadow-md line-clamp-1">${escapeHtml(story.category)}</span>
+                            <h3 class="text-[11px] sm:text-xs font-bold text-white leading-tight line-clamp-2 drop-shadow-lg">${escapeHtml(story.title)}</h3>
                         </div>
                     </div>
                     
                     <div class="card-action-layer" onclick="toggleFavorite(event, ${story.id})">
                         <div class="p-1.5 sm:p-2 bg-black/40 backdrop-blur-md rounded-full hover:bg-black/70 transition-all shadow-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 ${isFav ? 'text-red-500 fill-red-500' : 'text-white/80'} transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 sm:h-4 sm:w-4 ${isFav ? 'text-red-500 fill-red-500' : 'text-white/80'} transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                             </svg>
                         </div>
@@ -736,9 +811,7 @@ const stories = [
             </div>`;
         }
 
-        // --- ส่วนที่ขาดหายไป: ฟังก์ชันเอฟเฟกต์ 3D ตอนโฮเวอร์ ---
         function applyTiltEffect() {
-            // เช็คว่าไม่ใช่หน้าจอมือถือ (เพราะมือถือไม่มี hover)
             if (window.matchMedia("(pointer: coarse)").matches) return;
 
             const scenes = document.querySelectorAll('.card-scene');
@@ -753,7 +826,6 @@ const stories = [
                     const cx = rect.width / 2;
                     const cy = rect.height / 2;
                     
-                    // ปรับความไวของความเอียงตรงนี้ (เลขยิ่งน้อยยิ่งเอียงเยอะ)
                     const rotX = ((y - cy) / cy) * -12; 
                     const rotY = ((x - cx) / cx) * 12;
                     
@@ -796,8 +868,6 @@ const stories = [
             }).join('');
 
             grid.innerHTML = htmlContent;
-            
-            // เรียกใช้ Tilt Effect หลังจากเรนเดอร์การ์ดเสร็จ
             setTimeout(applyTiltEffect, 50);
         }
 
@@ -871,9 +941,8 @@ const stories = [
             }
             localStorage.setItem('animal_favorites', JSON.stringify(favoriteIds));
             
-            renderStories(); // Update main grid
+            renderStories();
             
-            // If favorites modal is open, update it too
             if (!document.getElementById('favoritesModal').classList.contains('hidden')) {
                 renderFavoritesModal();
             }
@@ -902,7 +971,7 @@ const stories = [
 
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            document.body.style.overflow = 'hidden'; // Lock scroll
+            document.body.style.overflow = 'hidden';
         }
 
         function closeModal() {
@@ -910,7 +979,6 @@ const stories = [
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             
-            // Check if other panels are open before restoring scroll
             if(document.getElementById('favoritesModal').classList.contains('hidden') &&
                document.getElementById('dangerPanel').classList.contains('translate-x-full')) {
                 document.body.style.overflow = 'auto';
@@ -971,7 +1039,6 @@ const stories = [
                         videoLoader.style.display = 'none';
                     }
                 } else {
-                    // Retry if API not ready yet
                     setTimeout(() => openVideoModal(mainIndex), 500);
                     return;
                 }
@@ -989,7 +1056,6 @@ const stories = [
         }
 
         function onPlayerStateChange(event) {
-            // 0 = Ended, 1 = Playing
             if (event.data === 0) playNextStory();
             if (event.data === 1) document.getElementById('videoLoader').style.display = 'none';
         }
@@ -1081,12 +1147,10 @@ const stories = [
                 if (mainIndex !== -1) {
                     openModal(mainIndex);
                 }
-            }, 300); // Wait for panel to close
+            }, 300);
         }
 
-        // --- ส่วน Initialization เมื่อหน้าเว็บโหลดเสร็จ ---
         document.addEventListener('DOMContentLoaded', () => {
-            // โหลดข้อมูลรายการโปรดจาก LocalStorage
             const storedFavs = localStorage.getItem('animal_favorites');
             if (storedFavs) {
                 try {
@@ -1096,11 +1160,12 @@ const stories = [
                 }
             }
             
-            // คัดลอกข้อมูล stories ต้นฉบับมาไว้สำหรับใช้งาน
             filteredStories = [...stories];
-            
-            // สั่งเรนเดอร์การ์ด
             renderStories();
+
+            // เริ่มต้นระบบแบนเนอร์ไฮไลท์แบบสุ่ม
+            updateHighlight();
+            highlightInterval = setInterval(updateHighlight, 6000); // เปลี่ยนรูปทุก 6 วินาที
         });
 
     </script>
