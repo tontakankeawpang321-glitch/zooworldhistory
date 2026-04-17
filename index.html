@@ -207,36 +207,14 @@
         }
 
         // =====================================================================
-        // ข้อมูลหลักสำหรับนำไปแสดงผล (แก้ไข URL ของคุณได้ที่นี่เลย)
-        // เพื่อความรวดเร็ว ระบบจะใช้ข้อมูลนี้แสดงผลทันที ไม่ต้องรอ API ภายนอก
+        // ตั้งค่า Google Sheets CSV URL (นำลิงก์ Publish to web (CSV) มาวางที่นี่)
         // =====================================================================
-        const MAIN_VIDEOS = [
-            { category: "วิดีโอแนะนำ", title: "โลกของเรา", description: "สำรวจโลกกว้าง", url: "https://youtu.be/6IHJNSvvo4U?si=7xaPYUhDlLgM7qBw" },
-            { category: "วิดีโอแนะนำ", title: "ชีวิตฉลามขาว", description: "นักล่าแห่งท้องทะเล", url: "https://www.youtube.com/watch?v=GfO-HzE1I18" },
-            { category: "วิดีโอแนะนำ", title: "จระเข้น้ำเค็ม", description: "สัตว์เลื้อยคลานที่ใหญ่ที่สุดในโลก", url: "https://www.youtube.com/watch?v=uw_Z2B0O5m8" },
-            { category: "สำรวจอวกาศ", title: "กำเนิดระบบสุริยะ", description: "ท่องไปในกาแล็กซีที่ห่างไกล", url: "https://www.youtube.com/watch?v=libKVRa01L8" },
-            { category: "สำรวจอวกาศ", title: "ดาวอังคาร", description: "หุ่นยนต์สำรวจดาวเคราะห์สีแดง", url: "https://www.youtube.com/watch?v=VNGUvwCSHRk" },
-            { category: "ธรรมชาติพิศวง", title: "ป่าฝนแอมะซอน", description: "ปอดของโลกที่มีความหลากหลาย", url: "https://www.youtube.com/watch?v=JkaxUblCGz0" },
-            { category: "ธรรมชาติพิศวง", title: "ทวีปน้ำแข็ง", description: "การเอาชีวิตรอดในสภาพอากาศสุดขั้ว", url: "https://www.youtube.com/watch?v=cVT2zX-1f7Y" },
-            { category: "สัตว์ป่า", title: "นกนักล่า", description: "พญาอินทรีจ้าวเวหา", url: "https://www.youtube.com/watch?v=1B4m-d0_M9A" },
-            { category: "สัตว์ป่า", title: "ชีวิตสะวันนา", description: "สิงโตและเหล่านักล่า", url: "https://www.youtube.com/watch?v=c8jE2mZMA1Q" }
-        ];
-
-        // --- ข้อมูลสำหรับปุ่มลอย (ค้นหาข้อมูลสัตว์) ---
-        const knowledgeData = [
-            { id: "k1", title: "ฉลามขาว (Great White Shark)", description: "นักล่าแห่งท้องทะเลที่มีฟันคมกริบ", thumbnail: "https://images.unsplash.com/photo-1560275619-4662e36fa65c?auto=format&fit=crop&q=60&w=400", linkUrl: "https://www.google.com/search?q=ฉลามขาว+Great+White+Shark" },
-            { id: "k2", title: "จระเข้น้ำเค็ม (Saltwater Crocodile)", description: "สัตว์เลื้อยคลานที่ใหญ่ที่สุดในโลก", thumbnail: "https://images.unsplash.com/photo-1517036640879-11ba188f6217?auto=format&fit=crop&q=60&w=400", linkUrl: "https://www.google.com/search?q=จระเข้น้ำเค็ม+Saltwater+Crocodile" },
-            { id: "k3", title: "งูไทปันโพ้นทะเล (Inland Taipan)", description: "งูที่มีพิษร้ายแรงที่สุดในโลก", thumbnail: "https://images.unsplash.com/photo-1534759846116-5799c33ce22a?auto=format&fit=crop&q=60&w=400", linkUrl: "https://www.google.com/search?q=งูไทปันโพ้นทะเล+Inland+Taipan" },
-            { id: "k4", title: "แมงกะพรุนกล่อง (Box Jellyfish)", description: "สัตว์ทะเลที่โปร่งใสแต่มีเข็มพิษร้ายแรง", thumbnail: "https://images.unsplash.com/photo-1549480017-d76466a4b7e8?auto=format&fit=crop&q=60&w=400", linkUrl: "https://www.google.com/search?q=แมงกะพรุนกล่อง+Box+Jellyfish" },
-            { id: "k5", title: "สิงโต (Lion)", description: "เจ้าป่าแห่งสะวันนา", thumbnail: "https://images.unsplash.com/photo-1517825738774-7de9363ef735?auto=format&fit=crop&q=60&w=400", linkUrl: "https://www.google.com/search?q=สิงโต+Lion" },
-            { id: "k6", title: "ฮิปโปโปเตมัส (Hippopotamus)", description: "สัตว์ที่ดุร้ายและปกป้องอาณาเขตอย่างหวงแหน", thumbnail: "https://images.unsplash.com/photo-1537025805562-b1db97ffc649?auto=format&fit=crop&q=60&w=400", linkUrl: "https://www.google.com/search?q=ฮิปโปโปเตมัส+Hippopotamus" },
-            { id: "k7", title: "ช้างแอฟริกา (African Elephant)", description: "สัตว์บกที่ใหญ่ที่สุดในโลก", thumbnail: "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?auto=format&fit=crop&q=60&w=400", linkUrl: "https://www.google.com/search?q=ช้างแอฟริกา+African+Elephant" },
-            { id: "k8", title: "เสือโคร่ง (Bengal Tiger)", description: "นักล่าสันโดษที่ทรงพลัง", thumbnail: "https://images.unsplash.com/photo-1500403668705-d5ab797a7a9e?auto=format&fit=crop&q=60&w=400", linkUrl: "https://www.google.com/search?q=เสือโคร่ง+Bengal+Tiger" },
-            { id: "k9", title: "หมีขั้วโลก (Polar Bear)", description: "นักล่าบนยอดสุดของห่วงโซ่อาหารในแถบอาร์กติก", thumbnail: "https://images.unsplash.com/photo-1518205739023-7a91512db16b?auto=format&fit=crop&q=60&w=400", linkUrl: "https://www.google.com/search?q=หมีขั้วโลก+Polar+Bear" },
-            { id: "k10", title: "เพนกวินจักรพรรดิ (Emperor Penguin)", description: "นกที่ทนความหนาวเย็นได้ดีที่สุด", thumbnail: "https://images.unsplash.com/photo-1598439210625-5067c578f3f6?auto=format&fit=crop&q=60&w=400", linkUrl: "https://www.google.com/search?q=เพนกวินจักรพรรดิ+Emperor+Penguin" }
-        ];
+        const MAIN_VIDEOS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvdWEwItR097kC2ZbCiOTGW2zllrcQHJP2wCrIqM4BUHX7Ldbv_7tqwzs4GQcijQhUhLwMtxR7GHw4/pub?output=csv"; 
+        const KNOWLEDGE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRPQLPk1F0Qx73zub432BIFb989bVRjjUZTl2gLcyqfWDJTuoseLA51ZE0PLJGHUUZdjxEhaE_HhDEV/pub?output=csv"; 
 
         let documentaries = [];
+        let knowledgeData = [];
+
         let currentPlaylist = []; 
         let currentDocId = null;  
 
@@ -259,24 +237,87 @@
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
-        // --- โหลดข้อมูล (ทำงานได้ทันที 100% เพราะดึงจาก MAIN_VIDEOS โดยตรง) ---
+        // ฟังก์ชันช่วยแปลง CSV string เป็น Array of Objects
+        function parseCSV(str) {
+            const lines = str.trim().split('\n');
+            if (lines.length < 2) return [];
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                // ตัดข้อมูลด้วยลูกน้ำ แต่ระวังกรณีมีลูกน้ำในเครื่องหมายคำพูด
+                const values = lines[i].match(/(".*?"|[^",\r\n]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
+                const obj = {};
+                headers.forEach((header, index) => {
+                    let val = values[index] ? values[index].trim() : '';
+                    if (val.startsWith('"') && val.endsWith('"')) val = val.substring(1, val.length - 1);
+                    obj[header] = val;
+                });
+                data.push(obj);
+            }
+            return data;
+        }
+
+        // --- โหลดข้อมูล (ดึงจาก CSV เป็นหลัก หากไม่ได้ใส่จะว่างเปล่า) ---
         async function loadData() {
             const statusEl = document.getElementById('data-status');
-            statusEl.textContent = 'โหลดข้อมูลสำเร็จ';
-            statusEl.className = 'hidden sm:block text-[10px] sm:text-sm px-3 py-1.5 rounded bg-emerald-900/80 text-emerald-300 backdrop-blur-sm border border-emerald-700/50';
+            statusEl.textContent = 'กำลังโหลดข้อมูล...';
+            statusEl.className = 'hidden sm:block text-[10px] sm:text-sm px-3 py-1.5 rounded bg-blue-900/80 text-blue-300 backdrop-blur-sm border border-blue-700/50';
             
-            documentaries = MAIN_VIDEOS.map((item, index) => {
-                const videoId = extractYouTubeId(item.url) || 'GfO-HzE1I18';
-                return {
-                    id: `yt_${videoId}_${index}`,
-                    category: item.category,
-                    title: item.title,
-                    description: item.description,
-                    thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-                    videoUrl: item.url
-                };
-            });
-            
+            // โหลดข้อมูลแกลอรีหลัก
+            try {
+                if (MAIN_VIDEOS_CSV_URL && MAIN_VIDEOS_CSV_URL.trim() !== "") {
+                    const res = await fetch(MAIN_VIDEOS_CSV_URL);
+                    if (!res.ok) throw new Error("ไม่สามารถดึงข้อมูลจากลิงก์ CSV Main ได้");
+                    const csvText = await res.text();
+                    const parsedData = parseCSV(csvText);
+                    if (parsedData.length > 0) {
+                        documentaries = parsedData.map((item, index) => {
+                            const videoId = extractYouTubeId(item.url) || 'GfO-HzE1I18';
+                            return {
+                                id: `yt_${videoId}_${index}`,
+                                category: item.category || 'วิดีโอแนะนำ',
+                                title: item.title || 'ไม่มีชื่อ',
+                                description: item.description || '',
+                                thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+                                videoUrl: item.url || `https://www.youtube.com/watch?v=${videoId}`
+                            };
+                        });
+                        statusEl.textContent = 'โหลดข้อมูลจาก CSV สำเร็จ';
+                        statusEl.className = 'hidden sm:block text-[10px] sm:text-sm px-3 py-1.5 rounded bg-emerald-900/80 text-emerald-300 backdrop-blur-sm border border-emerald-700/50';
+                    } else {
+                        throw new Error("CSV Main ว่างเปล่า");
+                    }
+                } else {
+                    throw new Error("ไม่มี URL CSV Main");
+                }
+            } catch (err) {
+                console.error("Error loading main videos:", err);
+                documentaries = []; // ล้างข้อมูลเมื่อเกิดข้อผิดพลาด
+                statusEl.textContent = 'ไม่พบข้อมูล (ตั้งค่า CSV ไม่สมบูรณ์)';
+                statusEl.className = 'hidden sm:block text-[10px] sm:text-sm px-3 py-1.5 rounded bg-red-900/80 text-red-300 backdrop-blur-sm border border-red-700/50';
+            }
+
+            // โหลดข้อมูลความรู้สัตว์โลก
+            try {
+                if (KNOWLEDGE_CSV_URL && KNOWLEDGE_CSV_URL.trim() !== "") {
+                    const res = await fetch(KNOWLEDGE_CSV_URL);
+                    if (!res.ok) throw new Error("ไม่สามารถดึงข้อมูลจากลิงก์ CSV Knowledge ได้");
+                    const csvText = await res.text();
+                    const parsedKnowledge = parseCSV(csvText);
+                    if (parsedKnowledge.length > 0) {
+                        knowledgeData = parsedKnowledge;
+                    } else {
+                        throw new Error("CSV Knowledge ว่างเปล่า");
+                    }
+                } else {
+                    throw new Error("ไม่มี URL CSV Knowledge");
+                }
+            } catch (err) {
+                console.error("Error loading knowledge data:", err);
+                knowledgeData = []; // ล้างข้อมูลเมื่อเกิดข้อผิดพลาด
+            }
+
             extractCategories(); 
             renderAll();
         }
@@ -545,6 +586,7 @@
             `;
         }
 
+        // ปุ่มแบ่งหน้า สำหรับข้อมูลสัตว์โลก (Modal)
         function renderKnowledgeModalPagination(totalItems) {
             const totalPages = Math.ceil(totalItems / knowledgeItemsPerPage);
             const container = document.getElementById('knowledge-modal-pagination');
