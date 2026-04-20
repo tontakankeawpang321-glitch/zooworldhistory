@@ -253,16 +253,16 @@
         // ระบบสุ่มพื้นหลังธรรมชาติ 10 รูป (เปลี่ยนทุก 24 ชั่วโมง)
         // =====================================================================
         const BACKGROUND_IMAGES = [
-            "https://images.unsplash.com/photo-1491002052546-bf38f186af56?auto=format&fit=crop&q=80&w=2560", // หิมะขาว
-            "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&q=80&w=2560", // ทุ่งหญ้าและท้องฟ้า
-            "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=2560", // ป่าไม้เขียวชอุ่ม
-            "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&q=80&w=2560", // ภูเขาและทะเลสาบ
-            "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&q=80&w=2560", // วิวธรรมชาติทิวทัศน์
-            "https://images.unsplash.com/photo-1506744626753-1fa44f14c22f?auto=format&fit=crop&q=80&w=2560", // แม่น้ำยามเช้า
-            "https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&q=80&w=2560", // ธรรมชาติป่าสน
-            "https://images.unsplash.com/photo-1470071131384-001b85755b36?auto=format&fit=crop&q=80&w=2560", // ใบไม้และแสงแดดอ่อนๆ
-            "https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&q=80&w=2560", // ป่าทึบแสงลอด
-            "https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&q=80&w=2560"  // น้ำตก
+            "https://images.unsplash.com/photo-1491002052546-bf38f186af56?auto=format&fit=crop&q=80&w=1920", // หิมะขาว
+            "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&q=80&w=1920", // ทุ่งหญ้าและท้องฟ้า
+            "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=1920", // ป่าไม้เขียวชอุ่ม
+            "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&q=80&w=1920", // ภูเขาและทะเลสาบ
+            "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&q=80&w=1920", // วิวธรรมชาติทิวทัศน์
+            "https://images.unsplash.com/photo-1506744626753-1fa44f14c22f?auto=format&fit=crop&q=80&w=1920", // แม่น้ำยามเช้า
+            "https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&q=80&w=1920", // ธรรมชาติป่าสน
+            "https://images.unsplash.com/photo-1470071131384-001b85755b36?auto=format&fit=crop&q=80&w=1920", // ใบไม้และแสงแดดอ่อนๆ
+            "https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&q=80&w=1920", // ป่าทึบแสงลอด
+            "https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&q=80&w=1920"  // น้ำตก
         ];
 
         function setDailyBackground() {
@@ -403,8 +403,15 @@
             return result;
         }
 
-        // --- โหลดข้อมูล (ดึงจาก CSV) ---
-        async function loadData() {
+        // --- โหลดข้อมูลแกลอรีหลัก (แยกโหลดเพื่อให้หน้าเว็บแสดงผลเร็วขึ้น) ---
+        async function loadMainData() {
+            const statusEl = document.getElementById('data-status');
+            if (statusEl) {
+                statusEl.textContent = 'กำลังโหลดข้อมูล...';
+                statusEl.className = 'hidden sm:block text-[10px] sm:text-sm px-3 py-1.5 rounded bg-blue-900/80 text-blue-300 backdrop-blur-sm border border-blue-700/50';
+                statusEl.style.display = 'block';
+            }
+            
             try {
                 if (MAIN_VIDEOS_CSV_URL && MAIN_VIDEOS_CSV_URL.trim() !== "") {
                     const res = await fetch(MAIN_VIDEOS_CSV_URL);
@@ -423,13 +430,33 @@
                                 videoUrl: item.url || `https://www.youtube.com/watch?v=${videoId}`
                             };
                         });
+                        
+                        if (statusEl) {
+                            statusEl.textContent = 'โหลดข้อมูลสำเร็จ';
+                            statusEl.className = 'hidden sm:block text-[10px] sm:text-sm px-3 py-1.5 rounded bg-emerald-900/80 text-emerald-300 backdrop-blur-sm border border-emerald-700/50';
+                            setTimeout(() => {
+                                if(statusEl) statusEl.style.display = 'none';
+                            }, 3000);
+                        }
+                    } else {
+                        throw new Error("CSV Main ว่างเปล่า");
                     }
                 }
             } catch (err) {
                 console.error("Error loading main videos:", err);
                 documentaries = []; 
+                if (statusEl) {
+                    statusEl.textContent = 'ข้อผิดพลาดการดึงข้อมูล';
+                    statusEl.className = 'hidden sm:block text-[10px] sm:text-sm px-3 py-1.5 rounded bg-red-900/80 text-red-300 backdrop-blur-sm border border-red-700/50';
+                }
             }
 
+            extractCategories(); 
+            renderAll();
+        }
+
+        // --- โหลดข้อมูลความรู้สัตว์โลก (โหลดเบื้องหลัง ไม่ให้บล็อกหน้าหลัก) ---
+        async function loadKnowledgeData() {
             try {
                 if (KNOWLEDGE_CSV_URL && KNOWLEDGE_CSV_URL.trim() !== "") {
                     const res = await fetch(KNOWLEDGE_CSV_URL);
@@ -444,9 +471,14 @@
                 console.error("Error loading knowledge data:", err);
                 knowledgeData = []; 
             }
+        }
 
-            extractCategories(); 
-            renderAll();
+        // --- โหลดข้อมูลทั้งหมด ---
+        async function loadData() {
+            // สั่งโหลดข้อมูลสัตว์โลกเบื้องหลัง (ไม่ต้องรอ)
+            loadKnowledgeData();
+            // โหลดข้อมูลแกลอรีหลัก (เพื่อแสดงผลทันที)
+            await loadMainData();
         }
 
         // --- ระบบ Sidebar หมวดหมู่ ---
