@@ -42,13 +42,16 @@
             color: #10b981; /* emerald-500 */
             fill: currentColor;
         }
+        /* เพิ่มสไตล์สำหรับ Cursor เวลาลากสไลเดอร์ */
+        .cursor-grab { cursor: grab; }
+        .cursor-grabbing { cursor: grabbing !important; }
     </style>
 </head>
 <body class="text-gray-100 font-sans min-h-screen relative pb-20">
 
-    <!-- พื้นหลังธรรมชาติสว่างที่โล่ง และ เงากระจกกึ่งโปร่งแสง (Frosted Glass) -->
-    <div class="fixed inset-0 z-[-1] bg-[url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&q=80&w=2560')] bg-cover bg-center">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-lg shadow-inner"></div>
+    <!-- พื้นหลังธรรมชาติ (เปลี่ยนทุก 24 ชม.) และ เงากระจกกึ่งโปร่งแสงแบบจางลง -->
+    <div id="dynamic-bg" class="fixed inset-0 z-[-1] bg-cover bg-center transition-all duration-1000">
+        <div class="absolute inset-0 bg-black/35 backdrop-blur-md shadow-inner"></div>
     </div>
 
     <!-- ส่วนหัว (Header) -->
@@ -69,10 +72,6 @@
 
             <!-- กลุ่มปุ่มด้านบนขวา -->
             <div class="flex items-center gap-2">
-                <div id="data-status" class="hidden sm:block text-[10px] sm:text-sm px-3 py-1.5 rounded bg-gray-800/80 text-gray-300 backdrop-blur-sm border border-gray-700/50 whitespace-nowrap">
-                    กำลังโหลด...
-                </div>
-                
                 <button onclick="refreshData()" class="p-2 bg-gray-800/80 border border-gray-700/50 rounded-full hover:bg-gray-700 transition-colors backdrop-blur-sm text-gray-300 hover:text-white" title="รีเฟรชข้อมูล">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 </button>
@@ -84,18 +83,62 @@
         </div>
     </header>
 
+    <!-- ปุ่มข้าง เลือกหมวดหมู่ (Left Floating Sidebar Button) -->
+    <button onclick="openSidebar()" class="fixed left-0 top-1/2 -translate-y-1/2 bg-emerald-600/90 hover:bg-emerald-500 text-white py-4 px-2 sm:py-5 sm:px-3 rounded-r-xl shadow-[5px_0_15px_rgba(0,0,0,0.5)] z-40 flex flex-col items-center gap-2 backdrop-blur-sm transition-transform hover:scale-105 border border-l-0 border-emerald-400/50 group">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+        <span class="text-[10px] sm:text-xs font-bold tracking-widest" style="writing-mode: vertical-rl; text-orientation: upright;">หมวดหมู่</span>
+    </button>
+
+    <!-- Sidebar หมวดหมู่ -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0 transition-opacity duration-300" onclick="closeSidebar()"></div>
+    <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-900/95 backdrop-blur-2xl border-r border-gray-800 transform -translate-x-full transition-transform duration-300 z-50 flex flex-col shadow-2xl">
+        <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-black/50">
+            <span class="text-lg font-bold text-white flex items-center gap-2">
+                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg> 
+                เลือกหมวดหมู่
+            </span>
+            <button onclick="closeSidebar()" class="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div id="sidebar-categories" class="flex-1 overflow-y-auto p-3 flex flex-col gap-2 hide-scrollbar">
+            <!-- ปุ่มหมวดหมู่จะถูกสร้างด้วย JS ตรงนี้ -->
+        </div>
+    </div>
+
     <!-- คอนเทนต์หลัก -->
-    <main class="w-full mx-auto pt-36 sm:pt-24 pb-12">
+    <main class="w-full mx-auto pt-36 sm:pt-24 pb-12 flex flex-col min-h-[85vh]">
         
-        <!-- แถบหมวดหมู่ (คลิกเพื่อเลื่อนไปยังสไลเดอร์นั้นๆ) -->
+        <!-- แถบหมวดหมู่แนวนอน (คลิกเพื่อเลือกหมวดหมู่) -->
         <div id="category-bar" class="flex overflow-x-auto hide-scrollbar gap-2 px-4 sm:px-8 mb-6 pb-2">
             <!-- ปุ่มหมวดหมู่จะถูกสร้างด้วย JS -->
         </div>
 
-        <!-- คอนเทนเนอร์สำหรับใส่สไลเดอร์ของแต่ละเพลย์ลิสต์/แชนเนล -->
-        <div id="main-content-area" class="w-full">
+        <!-- คอนเทนเนอร์สำหรับใส่สไลเดอร์ของแต่ละหมวดหมู่ -->
+        <div id="main-content-area" class="w-full flex-1">
             <!-- สไลเดอร์หมวดหมู่ต่างๆ จะถูกสร้างด้วย JS ตรงนี้ -->
         </div>
+
+        <!-- Footer / นโยบายส่วนตัว / เครดิต -->
+        <footer class="w-full max-w-6xl mx-auto px-4 mt-12 pt-6 border-t border-gray-800/50 flex flex-col items-center justify-center gap-5 text-sm text-gray-400 pb-16">
+            <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+                <a href="#" class="hover:text-emerald-400 transition-colors">นโยบายความเป็นส่วนตัว (Privacy Policy)</a>
+                <span class="hidden sm:inline">|</span>
+                <a href="https://sites.google.com/view/zootopiaworld/%E0%B8%AB%E0%B8%99%E0%B8%B2%E0%B9%81%E0%B8%A3%E0%B8%81" target="_blank" class="hover:text-emerald-400 transition-colors flex items-center gap-1 font-semibold text-white">
+                    <svg class="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 3.8l7.5 14.2H4.5L12 5.8z"/></svg>
+                    สนับสนุนโดย ZOOWORLD
+                </a>
+            </div>
+            <div class="flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity bg-gray-900/50 px-4 py-2 rounded-full border border-gray-800 shadow-lg">
+                <span class="text-xs">Powered by</span>
+                <!-- YouTube Logo Simple SVG -->
+                <svg class="w-14 h-auto" viewBox="0 0 90 20" fill="white">
+                    <path d="M88.7 4.2c-1-3.8-4-6.8-7.8-7.8C74 0 45 0 45 0s-29 0-35.9 1.6C5.3 2.6 2.3 5.6 1.3 9.4 0 16.3 0 30.5 0 30.5s0 14.2 1.3 21.1c1 3.8 4 6.8 7.8 7.8 6.9 1.6 35.9 1.6 35.9 1.6s29 0 35.9-1.6c3.8-1 6.8-4 7.8-7.8 1.3-6.9 1.3-21.1 1.3-21.1s0-14.2-1.3-21.1z" fill="#FF0000" transform="scale(0.3) translate(0, 10)"/>
+                    <path d="M59.9 41.5L35.8 27.6v27.8l24.1-13.9z" fill="#FFFFFF" transform="scale(0.3) translate(0, 10)"/>
+                    <text x="32" y="15" font-family="Arial" font-weight="bold" font-size="14" fill="#FFFFFF" letter-spacing="-0.5">YouTube</text>
+                </svg>
+            </div>
+        </footer>
 
     </main>
 
@@ -207,6 +250,38 @@
         }
 
         // =====================================================================
+        // ระบบสุ่มพื้นหลังธรรมชาติ 10 รูป (เปลี่ยนทุก 24 ชั่วโมง)
+        // =====================================================================
+        const BACKGROUND_IMAGES = [
+            "https://images.unsplash.com/photo-1491002052546-bf38f186af56?auto=format&fit=crop&q=80&w=2560", // หิมะขาว
+            "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&q=80&w=2560", // ทุ่งหญ้าและท้องฟ้า
+            "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=2560", // ป่าไม้เขียวชอุ่ม
+            "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&q=80&w=2560", // ภูเขาและทะเลสาบ
+            "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&q=80&w=2560", // วิวธรรมชาติทิวทัศน์
+            "https://images.unsplash.com/photo-1506744626753-1fa44f14c22f?auto=format&fit=crop&q=80&w=2560", // แม่น้ำยามเช้า
+            "https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&q=80&w=2560", // ธรรมชาติป่าสน
+            "https://images.unsplash.com/photo-1470071131384-001b85755b36?auto=format&fit=crop&q=80&w=2560", // ใบไม้และแสงแดดอ่อนๆ
+            "https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&q=80&w=2560", // ป่าทึบแสงลอด
+            "https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&q=80&w=2560"  // น้ำตก
+        ];
+
+        function setDailyBackground() {
+            const today = new Date();
+            const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+            
+            let hash = 0;
+            for (let i = 0; i < dateString.length; i++) {
+                hash = dateString.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            
+            const index = Math.abs(hash) % BACKGROUND_IMAGES.length;
+            const bgElement = document.getElementById('dynamic-bg');
+            if (bgElement) {
+                bgElement.style.backgroundImage = `url('${BACKGROUND_IMAGES[index]}')`;
+            }
+        }
+
+        // =====================================================================
         // ตั้งค่า Google Sheets CSV URL (นำลิงก์ Publish to web (CSV) มาวางที่นี่)
         // =====================================================================
         const MAIN_VIDEOS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvdWEwItR097kC2ZbCiOTGW2zllrcQHJP2wCrIqM4BUHX7Ldbv_7tqwzs4GQcijQhUhLwMtxR7GHw4/pub?output=csv"; 
@@ -228,43 +303,108 @@
         let knowledgeCurrentPage = 1;
         const knowledgeItemsPerPage = 10; 
         let ytPlayer = null;
+        let isDraggingSlider = false; // ตัวแปรเก็บสถานะการลาก
 
-        // ฟังก์ชันช่วยดึง ID วิดีโอจาก URL แบบต่างๆ
+        // ฟังก์ชันช่วยเปิดใช้งานการใช้นิ้ว/เมาส์ลาก (Drag/Swipe to Scroll)
+        function enableDragToScroll(slider) {
+            if (!slider) return;
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            slider.classList.add('cursor-grab');
+
+            slider.addEventListener('mousedown', (e) => {
+                isDown = true;
+                isDraggingSlider = false;
+                slider.classList.add('cursor-grabbing');
+                slider.classList.remove('cursor-grab');
+                slider.style.scrollBehavior = 'auto'; 
+                startX = e.pageX - slider.offsetLeft;
+                scrollLeft = slider.scrollLeft;
+            });
+
+            slider.addEventListener('mouseleave', () => {
+                isDown = false;
+                slider.classList.add('cursor-grab');
+                slider.classList.remove('cursor-grabbing');
+                slider.style.scrollBehavior = 'smooth';
+            });
+
+            slider.addEventListener('mouseup', () => {
+                isDown = false;
+                slider.classList.add('cursor-grab');
+                slider.classList.remove('cursor-grabbing');
+                slider.style.scrollBehavior = 'smooth';
+                setTimeout(() => { isDraggingSlider = false; }, 50);
+            });
+
+            slider.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - slider.offsetLeft;
+                const walk = (x - startX) * 1.5; 
+                if (Math.abs(walk) > 5) {
+                    isDraggingSlider = true; 
+                }
+                slider.scrollLeft = scrollLeft - walk;
+            });
+        }
+
+        // ฟังก์ชันช่วยดึง ID วิดีโอจาก URL แบบต่างๆ ให้ครอบคลุมมากขึ้น
         function extractYouTubeId(url) {
             if (!url) return null; 
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            if (url.includes('videoseries') || url.includes('/playlist?')) return null;
+            const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/|live\/)|youtu\.be\/)([^"&?\/\s]{11})/i;
             const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
+            return match ? match[1] : null;
         }
 
-        // ฟังก์ชันช่วยแปลง CSV string เป็น Array of Objects
+        // ฟังก์ชันช่วยแปลง CSV string เป็น Array of Objects อย่างแม่นยำ
         function parseCSV(str) {
-            const lines = str.trim().split('\n');
-            if (lines.length < 2) return [];
-            const headers = lines[0].split(',').map(h => h.trim());
-            const data = [];
+            const result = [];
+            const lines = str.split('\n');
+            if (lines.length < 2) return result;
+
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+
             for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                // ตัดข้อมูลด้วยลูกน้ำ แต่ระวังกรณีมีลูกน้ำในเครื่องหมายคำพูด
-                const values = lines[i].match(/(".*?"|[^",\r\n]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const values = [];
+                let inQuotes = false;
+                let currentValue = '';
+
+                for (let j = 0; j < line.length; j++) {
+                    const char = line[j];
+                    if (char === '"') {
+                        if (inQuotes && line[j+1] === '"') {
+                            currentValue += '"'; 
+                            j++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(currentValue.trim());
+                        currentValue = '';
+                    } else {
+                        currentValue += char;
+                    }
+                }
+                values.push(currentValue.trim());
+
                 const obj = {};
                 headers.forEach((header, index) => {
-                    let val = values[index] ? values[index].trim() : '';
-                    if (val.startsWith('"') && val.endsWith('"')) val = val.substring(1, val.length - 1);
-                    obj[header] = val;
+                    obj[header] = values[index] || '';
                 });
-                data.push(obj);
+                result.push(obj);
             }
-            return data;
+            return result;
         }
 
-        // --- โหลดข้อมูล (ดึงจาก CSV เป็นหลัก หากไม่ได้ใส่จะว่างเปล่า) ---
+        // --- โหลดข้อมูล (ดึงจาก CSV) ---
         async function loadData() {
-            const statusEl = document.getElementById('data-status');
-            statusEl.textContent = 'กำลังโหลดข้อมูล...';
-            statusEl.className = 'hidden sm:block text-[10px] sm:text-sm px-3 py-1.5 rounded bg-blue-900/80 text-blue-300 backdrop-blur-sm border border-blue-700/50';
-            
-            // โหลดข้อมูลแกลอรีหลัก
             try {
                 if (MAIN_VIDEOS_CSV_URL && MAIN_VIDEOS_CSV_URL.trim() !== "") {
                     const res = await fetch(MAIN_VIDEOS_CSV_URL);
@@ -273,7 +413,7 @@
                     const parsedData = parseCSV(csvText);
                     if (parsedData.length > 0) {
                         documentaries = parsedData.map((item, index) => {
-                            const videoId = extractYouTubeId(item.url) || 'GfO-HzE1I18';
+                            const videoId = extractYouTubeId(item.url) || 'c8jE2mZMA1Q';
                             return {
                                 id: `yt_${videoId}_${index}`,
                                 category: item.category || 'วิดีโอแนะนำ',
@@ -283,22 +423,13 @@
                                 videoUrl: item.url || `https://www.youtube.com/watch?v=${videoId}`
                             };
                         });
-                        statusEl.textContent = 'โหลดข้อมูลจาก CSV สำเร็จ';
-                        statusEl.className = 'hidden sm:block text-[10px] sm:text-sm px-3 py-1.5 rounded bg-emerald-900/80 text-emerald-300 backdrop-blur-sm border border-emerald-700/50';
-                    } else {
-                        throw new Error("CSV Main ว่างเปล่า");
                     }
-                } else {
-                    throw new Error("ไม่มี URL CSV Main");
                 }
             } catch (err) {
                 console.error("Error loading main videos:", err);
-                documentaries = []; // ล้างข้อมูลเมื่อเกิดข้อผิดพลาด
-                statusEl.textContent = 'ไม่พบข้อมูล (ตั้งค่า CSV ไม่สมบูรณ์)';
-                statusEl.className = 'hidden sm:block text-[10px] sm:text-sm px-3 py-1.5 rounded bg-red-900/80 text-red-300 backdrop-blur-sm border border-red-700/50';
+                documentaries = []; 
             }
 
-            // โหลดข้อมูลความรู้สัตว์โลก
             try {
                 if (KNOWLEDGE_CSV_URL && KNOWLEDGE_CSV_URL.trim() !== "") {
                     const res = await fetch(KNOWLEDGE_CSV_URL);
@@ -307,25 +438,41 @@
                     const parsedKnowledge = parseCSV(csvText);
                     if (parsedKnowledge.length > 0) {
                         knowledgeData = parsedKnowledge;
-                    } else {
-                        throw new Error("CSV Knowledge ว่างเปล่า");
                     }
-                } else {
-                    throw new Error("ไม่มี URL CSV Knowledge");
                 }
             } catch (err) {
                 console.error("Error loading knowledge data:", err);
-                knowledgeData = []; // ล้างข้อมูลเมื่อเกิดข้อผิดพลาด
+                knowledgeData = []; 
             }
 
             extractCategories(); 
             renderAll();
         }
 
+        // --- ระบบ Sidebar หมวดหมู่ ---
+        function openSidebar() {
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const sidebar = document.getElementById('sidebar');
+            backdrop.classList.remove('hidden');
+            setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+            sidebar.classList.remove('-translate-x-full');
+            document.body.classList.add('modal-open');
+        }
+
+        function closeSidebar() {
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const sidebar = document.getElementById('sidebar');
+            backdrop.classList.add('opacity-0');
+            sidebar.classList.add('-translate-x-full');
+            setTimeout(() => backdrop.classList.add('hidden'), 300);
+            document.body.classList.remove('modal-open');
+        }
+
         function extractCategories() {
             const cats = new Set(documentaries.map(d => d.category && d.category.trim() ? d.category.trim() : 'วิดีโออื่นๆ'));
             categoriesList = ["ทั้งหมด", ...Array.from(cats)];
             renderCategoryBar();
+            renderSidebarCategories();
         }
 
         function renderCategoryBar() {
@@ -336,12 +483,26 @@
                     ${cat}
                 </button>
             `).join('');
+            enableDragToScroll(bar);
+        }
+
+        function renderSidebarCategories() {
+            const bar = document.getElementById('sidebar-categories');
+            if (!bar) return;
+            bar.innerHTML = categoriesList.map(cat => `
+                <button onclick="setCategory('${cat}')" class="w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${currentCategory === cat ? 'bg-emerald-600 text-white shadow-md' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}">
+                    ${cat}
+                </button>
+            `).join('');
         }
 
         function setCategory(cat) {
             currentCategory = cat;
             renderCategoryBar();
+            renderSidebarCategories();
             renderAll();
+            closeSidebar();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function refreshData() {
@@ -355,8 +516,10 @@
             closeFavoritesModal();
             closeKnowledgeModal();
             closeModal();
+            closeSidebar();
             currentCategory = "ทั้งหมด";
             renderCategoryBar();
+            renderSidebarCategories();
             renderAll();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -445,6 +608,11 @@
             `;
             section.innerHTML = sliderHtml;
             container.appendChild(section);
+            
+            // เปิดใช้งานการใช้นิ้ว/เมาส์ลากในแต่ละสไลเดอร์ โดยหน่วงเวลาเล็กน้อยเพื่อให้ Element ถูกสร้างเสร็จก่อน
+            setTimeout(() => {
+                enableDragToScroll(document.getElementById(safeId));
+            }, 0);
         }
 
         // ฟังก์ชันสร้างการ์ดวิดีโอ
@@ -468,7 +636,7 @@
                     ${favBadge}
                     
                     ${previewContainer}
-                    <img ${thumbIdAttr} src="${doc.thumbnail}" alt="${doc.title}" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700 z-10" loading="lazy">
+                    <img ${thumbIdAttr} src="${doc.thumbnail}" onerror="this.src='https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=400';" alt="${doc.title}" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700 z-10" loading="lazy">
                     
                     <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-20 pointer-events-none"></div>
                     
@@ -614,7 +782,6 @@
             if (scrollableArea) scrollableArea.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-
         // --- 4. ระบบตัวอย่างวิดีโอ (Preview) ---
         function startPreviewPlayer() {
             if (!isYTReady || !currentPreviewDoc) return;
@@ -628,9 +795,9 @@
 
             let videoId = null;
             if (currentPreviewDoc.videoUrl) {
-                videoId = extractYouTubeId(currentPreviewDoc.videoUrl) || extractYouTubeId("https://www.youtube.com/watch?v=GfO-HzE1I18");
+                videoId = extractYouTubeId(currentPreviewDoc.videoUrl) || 'c8jE2mZMA1Q';
             } else {
-                videoId = "GfO-HzE1I18"; 
+                videoId = "c8jE2mZMA1Q"; 
             }
 
             previewPlayer = new YT.Player('preview-player-container', {
@@ -746,6 +913,8 @@
 
         // --- 6. ฟังก์ชันควบคุมการเล่นวิดีโอ (YouTube API) ---
         function openModalFromEncoded(encodedDoc, encodedPlaylist) {
+            if (isDraggingSlider) return;
+
             const doc = JSON.parse(decodeURIComponent(encodedDoc));
             const playlist = JSON.parse(decodeURIComponent(encodedPlaylist));
             openModal(doc, playlist);
@@ -769,7 +938,7 @@
             document.getElementById('modal-description').textContent = doc.description;
             updateModalFavButton();
             
-            const videoId = extractYouTubeId(doc.videoUrl) || 'GfO-HzE1I18';
+            const videoId = extractYouTubeId(doc.videoUrl) || 'c8jE2mZMA1Q';
 
             if (ytPlayer && ytPlayer.loadVideoById) {
                 ytPlayer.loadVideoById(videoId);
@@ -780,7 +949,7 @@
                         'autoplay': 1, 
                         'playsinline': 1,
                         'rel': 0,
-                        'fs': 1 // เปิดปุ่มขยายเต็มจอ
+                        'fs': 1 
                     },
                     events: {
                         'onStateChange': onPlayerStateChange
@@ -798,7 +967,7 @@
         }
 
         function onPlayerStateChange(event) {
-            if (event.data === 0) { // 0 = จบ
+            if (event.data === 0) { 
                 playNextVideo();
             }
         }
@@ -843,7 +1012,10 @@
         });
 
         // --- 7. เริ่มต้นการทำงาน ---
-        window.onload = loadData;
+        window.onload = () => {
+            setDailyBackground();
+            loadData();
+        };
 
     </script>
 </body>
