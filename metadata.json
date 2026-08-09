@@ -1,0 +1,6 @@
+{
+  "name": "Zooworld Documentary",
+  "description": "สารคดีสัตวโลก - สำรวจโลกแห่งสัตว์ป่าด้วยวิดีโอและคลังความรู้เชิงลึก",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
