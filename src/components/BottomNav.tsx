@@ -1,80 +1,56 @@
 import React from 'react';
-import { Home, Layers, Heart, Brain } from 'lucide-react';
 import { ActiveTab } from '../types';
 
 interface BottomNavProps {
   onGoHome: () => void;
-  onOpenCategoryDrawer: () => void;
   onOpenFavorites: () => void;
   onOpenQuiz: () => void;
-  favoritesCount: number;
-  activeTab: ActiveTab;
+  activeTab?: ActiveTab;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
   onGoHome,
-  onOpenCategoryDrawer,
   onOpenFavorites,
   onOpenQuiz,
-  favoritesCount,
-  activeTab,
+  activeTab = 'home',
 }) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#080A06]/95 backdrop-blur-xl border-t border-white/10 shadow-[0_-10px_25px_rgba(0,0,0,0.8)] py-2 px-3">
-      <div className="max-w-md mx-auto flex items-center justify-around">
-        
-        {/* Home */}
-        <button
-          onClick={onGoHome}
-          className={`flex flex-col items-center gap-1 transition-all py-1 px-3 rounded-xl active:scale-90 cursor-pointer ${
-            activeTab === 'home' ? 'text-[#A3E635] font-black' : 'text-white/40 hover:text-white'
-          }`}
-        >
-          <Home className="w-5 h-5" />
-          <span className="text-[10px] uppercase font-black tracking-wider leading-none">หน้าแรก</span>
-        </button>
+    <nav className="fixed bottom-0 w-full bg-black/95 backdrop-blur-xl border-t border-gray-800 z-40 flex justify-around py-2.5 px-2 shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
+      <button 
+        onClick={onGoHome} 
+        className={`flex flex-col items-center gap-1 transition-colors flex-1 cursor-pointer ${
+          activeTab === 'home' ? 'text-emerald-400 font-bold' : 'text-gray-400 hover:text-emerald-400'
+        }`}
+      >
+        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+        <span className="text-[10px] sm:text-xs">หน้าแรก</span>
+      </button>
 
-        {/* Categories Drawer */}
-        <button
-          onClick={onOpenCategoryDrawer}
-          className="flex flex-col items-center gap-1 text-white/40 hover:text-[#A3E635] transition-all py-1 px-3 rounded-xl active:scale-90 cursor-pointer"
-        >
-          <Layers className="w-5 h-5" />
-          <span className="text-[10px] uppercase font-black tracking-wider leading-none">หมวดหมู่</span>
-        </button>
+      <button 
+        onClick={onOpenFavorites} 
+        className={`flex flex-col items-center gap-1 transition-colors flex-1 cursor-pointer ${
+          activeTab === 'favorites' ? 'text-emerald-400 font-bold' : 'text-gray-400 hover:text-emerald-400'
+        }`}
+      >
+        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+        </svg>
+        <span className="text-[10px] sm:text-xs">รายการโปรด</span>
+      </button>
 
-        {/* Quiz Game */}
-        <button
-          onClick={onOpenQuiz}
-          className={`flex flex-col items-center gap-1 transition-all py-1 px-3 rounded-xl active:scale-90 cursor-pointer ${
-            activeTab === 'quiz' ? 'text-[#A3E635] font-black' : 'text-white/40 hover:text-white'
-          }`}
-        >
-          <Brain className="w-5 h-5" />
-          <span className="text-[10px] uppercase font-black tracking-wider leading-none">เกมทดสอบ</span>
-        </button>
-
-        {/* Favorites */}
-        <button
-          onClick={onOpenFavorites}
-          className={`relative flex flex-col items-center gap-1 transition-all py-1 px-3 rounded-xl active:scale-90 cursor-pointer ${
-            activeTab === 'favorites' ? 'text-[#A3E635] font-black' : 'text-white/40 hover:text-white'
-          }`}
-        >
-          <div className="relative">
-            <Heart className={`w-5 h-5 ${favoritesCount > 0 ? 'fill-[#A3E635] text-[#A3E635]' : ''}`} />
-            {favoritesCount > 0 && (
-              <span className="absolute -top-1.5 -right-2 bg-[#A3E635] text-[#080A06] font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center shadow-md">
-                {favoritesCount}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] uppercase font-black tracking-wider leading-none">รายการโปรด</span>
-        </button>
-
-      </div>
+      <button 
+        onClick={onOpenQuiz} 
+        className={`flex flex-col items-center gap-1 transition-colors flex-1 cursor-pointer ${
+          activeTab === 'quiz' ? 'text-emerald-400 font-bold' : 'text-gray-400 hover:text-emerald-400'
+        }`}
+      >
+        <svg className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2h-0a2 2 0 01-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+        </svg>
+        <span className="text-[10px] sm:text-xs text-emerald-400 font-medium">เกมทาย</span>
+      </button>
     </nav>
   );
 };
-
-
