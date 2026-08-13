@@ -11,7 +11,7 @@ import { VideoSliderSection } from './components/VideoSliderSection';
 import { VideoCard } from './components/VideoCard';
 import { VideoPlayerModal } from './components/VideoPlayerModal';
 import { FavoritesModal } from './components/FavoritesModal';
-import { KnowledgeModal } from './components/KnowledgeModal';
+import { QuizModal } from './components/QuizModal';
 import { Toast } from './components/Toast';
 import { Compass, RefreshCw, Heart, Search, ExternalLink, Sparkles } from 'lucide-react';
 
@@ -39,11 +39,88 @@ export default function App() {
   const [playingDoc, setPlayingDoc] = useState<Documentary | null>(null);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState<boolean>(false);
   const [isCategoryDrawerOpen, setIsCategoryDrawerOpen] = useState<boolean>(false);
-  const [isKnowledgeOpen, setIsKnowledgeOpen] = useState<boolean>(false);
+  const [isQuizOpen, setIsQuizOpen] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
 
   // Toast feedback
   const [toast, setToast] = useState<ToastMessage | null>(null);
+
+  // 1. Prevent background main page scrolling when any dialog/modal/drawer is open
+  const isAnyModalOpen = Boolean(playingDoc || isCategoryDrawerOpen || isFavoritesOpen || isQuizOpen);
+
+  useEffect(() => {
+    if (isAnyModalOpen) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [isAnyModalOpen]);
+
+  // 2. Mobile Browser / Hardware Back Button Support (popstate event)
+  useEffect(() => {
+    if (isAnyModalOpen) {
+      // Push history state if not already marked
+      if (!window.history.state?.modalActive) {
+        window.history.pushState({ modalActive: true }, '');
+      }
+    }
+
+    const handlePopState = () => {
+      // When back button is pressed on phone/browser, close open dialogs
+      if (playingDoc) setPlayingDoc(null);
+      if (isCategoryDrawerOpen) setIsCategoryDrawerOpen(false);
+      if (isFavoritesOpen) {
+        setIsFavoritesOpen(false);
+        setActiveTab('home');
+      }
+      if (isQuizOpen) {
+        setIsQuizOpen(false);
+        setActiveTab('home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [playingDoc, isCategoryDrawerOpen, isFavoritesOpen, isQuizOpen]);
+
+  // Close handlers that also maintain clean browser history
+  const handleCloseVideoModal = () => {
+    setPlayingDoc(null);
+    if (window.history.state?.modalActive) {
+      window.history.back();
+    }
+  };
+
+  const handleCloseCategoryDrawer = () => {
+    setIsCategoryDrawerOpen(false);
+    if (window.history.state?.modalActive) {
+      window.history.back();
+    }
+  };
+
+  const handleCloseFavorites = () => {
+    setIsFavoritesOpen(false);
+    setActiveTab('home');
+    if (window.history.state?.modalActive) {
+      window.history.back();
+    }
+  };
+
+  const handleCloseQuiz = () => {
+    setIsQuizOpen(false);
+    setActiveTab('home');
+    if (window.history.state?.modalActive) {
+      window.history.back();
+    }
+  };
 
   const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
     const id = Date.now().toString();
@@ -143,7 +220,7 @@ export default function App() {
     setSelectedCategory('ทั้งหมด');
     setSearchQuery('');
     setIsFavoritesOpen(false);
-    setIsKnowledgeOpen(false);
+    setIsQuizOpen(false);
     setIsCategoryDrawerOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -153,22 +230,22 @@ export default function App() {
     setActiveTab('favorites');
   };
 
-  const handleOpenKnowledge = () => {
-    setIsKnowledgeOpen(true);
-    setActiveTab('knowledge');
+  const handleOpenQuiz = () => {
+    setIsQuizOpen(true);
+    setActiveTab('quiz');
   };
 
   return (
-    <div className="min-h-screen text-[#E0E2DB] font-sans relative pb-24 selection:bg-[#9BBF73] selection:text-[#0A0B09] bg-[#0A0B09]">
+    <div className="min-h-screen text-[#E0E2DB] font-sans relative pb-20 selection:bg-[#A3E635] selection:text-[#080A06] bg-[#080A06]">
       
       {/* Dynamic Nature Background image with dark editorial overlay */}
       <div
-        className="fixed inset-0 z-[-1] bg-cover bg-center transition-all duration-1000 opacity-30"
+        className="fixed inset-0 z-[-1] bg-cover bg-center transition-all duration-1000 opacity-25"
         style={{
           backgroundImage: bgImage ? `url(${bgImage})` : undefined,
         }}
       >
-        <div className="absolute inset-0 bg-[#0A0B09]/80 backdrop-blur-md" />
+        <div className="absolute inset-0 bg-[#080A06]/90 backdrop-blur-md" />
       </div>
 
       {/* Floating Toast Notification */}
@@ -183,13 +260,13 @@ export default function App() {
         favoritesCount={favorites.length}
         onOpenFavorites={handleOpenFavorites}
         onOpenCategoryDrawer={() => setIsCategoryDrawerOpen(true)}
-        onOpenKnowledge={handleOpenKnowledge}
+        onOpenQuiz={handleOpenQuiz}
         onGoHome={handleGoHome}
         activeTab={activeTab}
       />
 
       {/* Main Content Area */}
-      <main className="pt-28 md:pt-20">
+      <main className="pt-24 sm:pt-20 max-w-md mx-auto sm:max-w-7xl">
         
         {/* Horizontal Category Bar */}
         <CategoryBar
@@ -204,8 +281,8 @@ export default function App() {
 
         {/* Loading Spinner Skeleton */}
         {isLoading && documentaries.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 text-white/50">
-            <RefreshCw className="w-10 h-10 text-[#9BBF73] animate-spin mb-3" />
+          <div className="flex flex-col items-center justify-center py-20 text-white/50">
+            <RefreshCw className="w-8 h-8 text-[#A3E635] animate-spin mb-3" />
             <p className="text-xs font-bold uppercase tracking-wider">กำลังโหลดข้อมูลสารคดีสัตวโลก...</p>
           </div>
         )}
@@ -215,24 +292,24 @@ export default function App() {
           <>
             {/* If user is searching */}
             {searchQuery !== '' ? (
-              <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6">
-                <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-3">
-                  <h2 className="text-lg sm:text-2xl font-serif text-white">
-                    ผลการค้นหา: <span className="text-[#9BBF73] italic">"{searchQuery}"</span>
+              <div className="px-3 sm:px-6 py-4">
+                <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-2.5">
+                  <h2 className="text-xs sm:text-lg font-serif font-bold text-white">
+                    ผลการค้นหา: <span className="text-[#A3E635] italic">"{searchQuery}"</span>
                   </h2>
-                  <span className="text-xs px-3 py-1 rounded-full bg-[#1A1C18] border border-white/10 text-[#E0E2DB]/70 font-semibold">
+                  <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#12150E] border border-white/10 text-white/70 font-semibold">
                     พบ {filteredDocs.length} รายการ
                   </span>
                 </div>
 
                 {filteredDocs.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-center text-white/50">
-                    <Search className="w-12 h-12 text-white/20 mb-3" />
-                    <p className="text-base font-serif font-bold text-white mb-1">ไม่พบวิดีโอที่คุณค้นหา</p>
-                    <p className="text-xs text-[#E0E2DB]/60 font-light">ลองใช้คำค้นหาอื่น เช่น "เสือ", "ป่า", "ทะเล"</p>
+                  <div className="flex flex-col items-center justify-center py-16 text-center text-white/50">
+                    <Search className="w-10 h-10 text-white/20 mb-2" />
+                    <p className="text-xs font-serif font-bold text-white mb-1">ไม่พบวิดีโอที่คุณค้นหา</p>
+                    <p className="text-[11px] text-white/50 font-light">ลองใช้คำค้นหาอื่น เช่น "เสือ", "ป่า", "ทะเล"</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {filteredDocs.map((doc) => (
                       <VideoCard
                         key={doc.id}
@@ -247,18 +324,18 @@ export default function App() {
               </div>
             ) : selectedCategory !== 'ทั้งหมด' ? (
               /* If specific category is selected */
-              <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6">
-                <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-3">
-                  <div className="w-1.5 h-6 rounded-full bg-[#9BBF73]" />
-                  <h2 className="text-lg sm:text-2xl font-serif text-white">
-                    หมวดหมู่: <span className="text-[#9BBF73] italic">{selectedCategory}</span>
+              <div className="px-3 sm:px-6 py-4">
+                <div className="flex items-center gap-2 mb-4 border-b border-white/5 pb-2.5">
+                  <div className="w-1.5 h-4 rounded-full bg-[#A3E635]" />
+                  <h2 className="text-xs sm:text-lg font-serif font-bold text-white">
+                    หมวดหมู่: <span className="text-[#A3E635] italic">{selectedCategory}</span>
                   </h2>
-                  <span className="text-xs px-3 py-1 rounded-full bg-[#1A1C18] border border-white/10 text-[#9BBF73] font-bold">
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#12150E] border border-white/10 text-[#A3E635] font-bold">
                     {filteredDocs.length} รายการ
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {filteredDocs.map((doc) => (
                     <VideoCard
                       key={doc.id}
@@ -306,22 +383,22 @@ export default function App() {
         )}
 
         {/* Footer info */}
-        <footer className="max-w-7xl mx-auto px-4 sm:px-8 mt-20 pt-8 border-t border-white/10 flex flex-col items-center justify-center gap-3 text-xs text-[#E0E2DB]/60 pb-16">
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <span className="text-white font-serif font-bold uppercase tracking-wider">WILDLIFE ZOOWORLD DOCUMENTARY</span>
+        <footer className="px-4 mt-12 pt-6 border-t border-white/10 flex flex-col items-center justify-center gap-2 text-[10px] text-white/50 pb-16 text-center">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <span className="text-white font-serif font-black uppercase tracking-wider">WILDLIFE ZOOWORLD MOBILE</span>
             <span>•</span>
             <a
               href="https://sites.google.com/view/zootopiaworld/%E0%B8%AB%E0%B8%99%E0%B8%B2%E0%B9%81%E0%B8%A3%E0%B8%81"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#9BBF73] hover:underline flex items-center gap-1 font-bold uppercase tracking-wider"
+              className="text-[#A3E635] hover:underline flex items-center gap-1 font-bold uppercase tracking-wider"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
-              เว็บไซต์สนับสนุน ZOOWORLD
+              <ExternalLink className="w-3 h-3" />
+              ZOOWORLD
             </a>
           </div>
-          <p className="text-[11px] text-[#E0E2DB]/40 text-center font-light max-w-lg">
-            คลังวิดีโอสารคดีธรรมชาติและสารานุกรมสัตว์ป่า ร่วมอนุรักษ์สิ่งแวดล้อมและธรรมชาติของโลก
+          <p className="text-[10px] text-white/40 max-w-xs font-light">
+            คลังวิดีโอสารคดีธรรมชาติและสารานุกรมสัตว์ป่า ร่วมอนุรักษ์ธรรมชาติ
           </p>
         </footer>
 
@@ -330,7 +407,7 @@ export default function App() {
       {/* Floating Category Drawer */}
       <CategoryDrawer
         isOpen={isCategoryDrawerOpen}
-        onClose={() => setIsCategoryDrawerOpen(false)}
+        onClose={handleCloseCategoryDrawer}
         categories={categoriesList}
         selectedCategory={selectedCategory}
         onSelectCategory={(cat) => {
@@ -340,7 +417,7 @@ export default function App() {
         documentariesCount={documentaries.length}
       />
 
-      {/* Video Player Modal */}
+      {/* Video Player Dialog Modal */}
       {playingDoc && (
         <VideoPlayerModal
           documentary={playingDoc}
@@ -349,7 +426,7 @@ export default function App() {
               ? documentaries
               : filteredDocs
           }
-          onClose={() => setPlayingDoc(null)}
+          onClose={handleCloseVideoModal}
           isFavorite={favorites.includes(playingDoc.id)}
           onToggleFavorite={(doc) => handleToggleFavorite(null, doc)}
           onSelectVideo={setPlayingDoc}
@@ -360,10 +437,7 @@ export default function App() {
       {/* Favorites Modal */}
       <FavoritesModal
         isOpen={isFavoritesOpen}
-        onClose={() => {
-          setIsFavoritesOpen(false);
-          setActiveTab('home');
-        }}
+        onClose={handleCloseFavorites}
         favoriteDocumentaries={favoriteDocs}
         onPlay={(doc) => {
           setPlayingDoc(doc);
@@ -372,13 +446,10 @@ export default function App() {
         onToggleFavorite={handleToggleFavorite}
       />
 
-      {/* Knowledge Search Modal */}
-      <KnowledgeModal
-        isOpen={isKnowledgeOpen}
-        onClose={() => {
-          setIsKnowledgeOpen(false);
-          setActiveTab('home');
-        }}
+      {/* Quiz Game Modal */}
+      <QuizModal
+        isOpen={isQuizOpen}
+        onClose={handleCloseQuiz}
         knowledgeItems={knowledgeItems}
       />
 
@@ -387,7 +458,7 @@ export default function App() {
         onGoHome={handleGoHome}
         onOpenCategoryDrawer={() => setIsCategoryDrawerOpen(true)}
         onOpenFavorites={handleOpenFavorites}
-        onOpenKnowledge={handleOpenKnowledge}
+        onOpenQuiz={handleOpenQuiz}
         favoritesCount={favorites.length}
         activeTab={activeTab}
       />

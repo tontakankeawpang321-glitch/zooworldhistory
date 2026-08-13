@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Heart, Play, ChevronRight, Share2, Info, Sparkles, Check } from 'lucide-react';
+import { X, Heart, ChevronRight, Share2, Info, Sparkles, Check } from 'lucide-react';
 import { Documentary } from '../types';
 
 interface VideoPlayerModalProps {
@@ -53,57 +53,57 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
       {/* Dark Backdrop */}
       <div
-        className="fixed inset-0 bg-[#0A0B09]/90 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-[#080A06]/95 backdrop-blur-xl transition-opacity"
         onClick={onClose}
       />
 
-      {/* Main Player Dialog Box */}
-      <div className="relative w-full max-w-5xl bg-[#0A0B09] sm:rounded-2xl border border-white/10 shadow-2xl overflow-hidden z-10 flex flex-col max-h-[100vh] sm:max-h-[92vh]">
+      {/* Main Mobile Player Dialog Box */}
+      <div className="relative w-full max-w-lg bg-[#080A06] rounded-2xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.9)] overflow-hidden z-10 flex flex-col max-h-[96vh]">
         
         {/* Top Dialog Bar */}
-        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/10 bg-[#1A1C18] shrink-0">
+        <div className="flex items-center justify-between p-3 border-b border-white/10 bg-[#12150E] shrink-0">
           <div className="flex items-center gap-2 pr-2 overflow-hidden">
-            <span className="px-2.5 py-0.5 rounded bg-[#9BBF73] text-[#0A0B09] font-bold text-[10px] uppercase tracking-wider shrink-0">
+            <span className="px-2 py-0.5 rounded bg-[#A3E635] text-[#080A06] font-extrabold text-[9px] uppercase tracking-wider shrink-0">
               {documentary.category}
             </span>
-            <h2 className="text-xs sm:text-base font-serif font-bold text-white truncate">
+            <h2 className="text-xs font-serif font-bold text-white truncate">
               {documentary.title}
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             {/* Share button */}
             <button
               onClick={handleShare}
-              className="p-2 rounded-full text-white/70 hover:text-white bg-white/5 border border-white/10 hover:border-[#9BBF73]/50 transition-colors cursor-pointer"
+              className="p-1.5 rounded-full text-white/70 hover:text-white bg-white/5 border border-white/10 transition-colors cursor-pointer"
               title="แชร์ลิงก์"
             >
-              {copied ? <Check className="w-4 h-4 text-[#9BBF73]" /> : <Share2 className="w-4 h-4" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-[#A3E635]" /> : <Share2 className="w-3.5 h-3.5" />}
             </button>
 
             {/* Favorite button */}
             <button
               onClick={() => onToggleFavorite(documentary)}
-              className={`p-2 rounded-full border transition-all cursor-pointer ${
+              className={`p-1.5 rounded-full border transition-all cursor-pointer ${
                 isFavorite
-                  ? 'bg-[#9BBF73] border-[#9BBF73] text-[#0A0B09]'
-                  : 'bg-white/5 border-white/10 text-white/70 hover:text-[#9BBF73]'
+                  ? 'bg-[#A3E635] border-[#A3E635] text-[#080A06]'
+                  : 'bg-white/5 border-white/10 text-white/70 hover:text-[#A3E635]'
               }`}
               title={isFavorite ? 'ลบออกจากรายการโปรด' : 'บันทึกเป็นรายการโปรด'}
             >
-              <Heart className={`w-4 h-4 ${isFavorite ? 'fill-[#0A0B09]' : ''}`} />
+              <Heart className={`w-3.5 h-3.5 ${isFavorite ? 'fill-[#080A06]' : ''}`} />
             </button>
 
-            {/* Close button */}
+            {/* Prominent Mobile Dialog Close button */}
             <button
               onClick={onClose}
-              className="p-2 rounded-full text-white/70 hover:text-white bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
-              title="ปิด"
+              className="p-1.5 rounded-full text-[#080A06] bg-[#A3E635] hover:bg-white transition-all active:scale-95 cursor-pointer flex items-center justify-center shrink-0 shadow-lg font-bold"
+              title="ปิดวิดีโอ"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 text-[#080A06]" />
             </button>
           </div>
         </div>
@@ -120,26 +120,26 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         </div>
 
         {/* Video Details & Playlist Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#0A0B09] space-y-4 hide-scrollbar">
+        <div className="flex-1 overflow-y-auto p-3.5 bg-[#080A06] space-y-3 hide-scrollbar">
           
           {/* Title & Category Info */}
           <div>
-            <h1 className="text-base sm:text-2xl font-serif text-white leading-tight">
+            <h1 className="text-sm font-serif font-bold text-white leading-snug">
               {documentary.title}
             </h1>
             
             {/* Description Box */}
-            <div className="mt-3 p-4 rounded-xl bg-[#1A1C18] border border-white/10 text-xs sm:text-sm text-[#E0E2DB]/80 leading-relaxed font-light">
+            <div className="mt-2 p-3 rounded-xl bg-[#12150E] border border-white/10 text-xs text-white/70 leading-relaxed font-light">
               <p className={showFullDesc ? '' : 'line-clamp-2'}>
                 {documentary.description || 'ไม่มีรายละเอียดสำหรับสารคดีชุดนี้'}
               </p>
-              {documentary.description && documentary.description.length > 100 && (
+              {documentary.description && documentary.description.length > 80 && (
                 <button
                   onClick={() => setShowFullDesc(!showFullDesc)}
-                  className="mt-2 text-xs text-[#9BBF73] hover:underline font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
+                  className="mt-1.5 text-[11px] text-[#A3E635] font-bold flex items-center gap-1 cursor-pointer"
                 >
-                  <Info className="w-3.5 h-3.5" />
-                  {showFullDesc ? 'ย่อรายละเอียด' : 'อ่านรายละเอียดเพิ่มเติม'}
+                  <Info className="w-3 h-3" />
+                  {showFullDesc ? 'ย่อรายละเอียด' : 'อ่านเพิ่มเติม'}
                 </button>
               )}
             </div>
@@ -147,22 +147,22 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
           {/* Up Next / Next Video Card Banner */}
           {nextVideo && (
-            <div className="p-4 rounded-xl bg-[#1A1C18] border border-white/10 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 overflow-hidden">
+            <div className="p-2.5 rounded-xl bg-[#12150E] border border-white/10 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 overflow-hidden">
                 <img
                   src={nextVideo.thumbnail}
                   alt={nextVideo.title}
-                  className="w-16 h-10 sm:w-20 sm:h-12 object-cover rounded border border-white/10 shrink-0"
+                  className="w-14 h-9 object-cover rounded border border-white/10 shrink-0"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
                       'https://images.unsplash.com/photo-1534567153574-2b12153a87f0?auto=format&fit=crop&q=80&w=300';
                   }}
                 />
                 <div className="overflow-hidden">
-                  <span className="text-[10px] text-[#9BBF73] font-bold uppercase tracking-wider block">
+                  <span className="text-[9px] text-[#A3E635] font-bold uppercase tracking-wider block">
                     สารคดีถัดไป
                   </span>
-                  <h4 className="text-xs sm:text-sm font-semibold text-white truncate">
+                  <h4 className="text-xs font-semibold text-white truncate">
                     {nextVideo.title}
                   </h4>
                 </div>
@@ -170,36 +170,36 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
               <button
                 onClick={() => onSelectVideo(nextVideo)}
-                className="px-4 py-2 rounded-full bg-[#9BBF73] text-[#0A0B09] font-extrabold text-xs shrink-0 flex items-center gap-1 transition-transform active:scale-95 shadow-md uppercase tracking-wider cursor-pointer"
+                className="px-3 py-1.5 rounded-full bg-[#A3E635] text-[#080A06] font-black text-xs shrink-0 flex items-center gap-0.5 active:scale-95 shadow-md uppercase tracking-wider cursor-pointer"
               >
                 <span>เล่นเลย</span>
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
 
-          {/* Playlist / Related Videos Horizontal Carousel */}
+          {/* Playlist / Related Videos Grid */}
           {playlist.length > 1 && (
             <div>
-              <h3 className="text-xs sm:text-sm font-serif font-bold text-white/80 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
-                <Sparkles className="w-4 h-4 text-[#9BBF73]" />
-                <span>รายการสารคดีในหมวดหมู่นี้ ({playlist.length})</span>
+              <h3 className="text-xs font-serif font-bold text-white/80 mb-2 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#A3E635]" />
+                <span>วิดีโออื่นๆ ในหมวดนี้ ({playlist.length})</span>
               </h3>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 {playlist.map((item) => {
                   const isCurrent = item.id === documentary.id;
                   return (
                     <div
                       key={item.id}
                       onClick={() => !isCurrent && onSelectVideo(item)}
-                      className={`relative rounded-xl overflow-hidden border p-2 cursor-pointer transition-all flex flex-col ${
+                      className={`relative rounded-lg overflow-hidden border p-1.5 cursor-pointer transition-all flex flex-col ${
                         isCurrent
-                          ? 'bg-[#1A1C18] border-[#9BBF73] shadow-md'
-                          : 'bg-[#1A1C18]/60 hover:bg-[#1A1C18] border-white/5 hover:border-white/20'
+                          ? 'bg-[#12150E] border-[#A3E635] shadow-md'
+                          : 'bg-[#12150E]/60 hover:bg-[#12150E] border-white/5'
                       }`}
                     >
-                      <div className="relative aspect-video w-full rounded overflow-hidden bg-black mb-2">
+                      <div className="relative aspect-video w-full rounded overflow-hidden bg-black mb-1.5">
                         <img
                           src={item.thumbnail}
                           alt={item.title}
@@ -210,14 +210,14 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                           }}
                         />
                         {isCurrent && (
-                          <div className="absolute inset-0 bg-[#0A0B09]/80 backdrop-blur-[1px] flex items-center justify-center">
-                            <span className="text-[10px] font-bold text-[#0A0B09] uppercase tracking-wider px-2 py-0.5 rounded bg-[#9BBF73]">
+                          <div className="absolute inset-0 bg-[#080A06]/80 backdrop-blur-[1px] flex items-center justify-center">
+                            <span className="text-[9px] font-bold text-[#080A06] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#A3E635]">
                               กำลังเล่น
                             </span>
                           </div>
                         )}
                       </div>
-                      <h4 className="text-[11px] font-medium text-[#E0E2DB] line-clamp-1 leading-snug">
+                      <h4 className="text-[10px] font-medium text-white/90 line-clamp-1 leading-snug">
                         {item.title}
                       </h4>
                     </div>
@@ -233,3 +233,4 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     </div>
   );
 };
+

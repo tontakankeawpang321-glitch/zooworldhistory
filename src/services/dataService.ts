@@ -71,22 +71,105 @@ const FALLBACK_KNOWLEDGE: KnowledgeItem[] = [
   }
 ];
 
+// Helper to extract field value dynamically from parsed object using multiple possible key names
+function getFieldValue(item: Record<string, string>, possibleKeys: string[]): string {
+  // 1. Exact or lowercased key match
+  for (const key of possibleKeys) {
+    if (item[key] && item[key].trim()) {
+      return item[key].trim();
+    }
+  }
+
+  // 2. Loose match (e.g. key includes Thai or English keyword)
+  const itemKeys = Object.keys(item);
+  for (const k of itemKeys) {
+    const kLower = k.toLowerCase();
+    for (const pKey of possibleKeys) {
+      if (kLower.includes(pKey) && item[k] && item[k].trim()) {
+        return item[k].trim();
+      }
+    }
+  }
+
+  return '';
+}
+
 export async function fetchDocumentaries(): Promise<Documentary[]> {
   try {
-    const res = await fetch(`${MAIN_VIDEOS_CSV_URL}&t=${Date.now()}`);
+    // Add cache-busting timestamp and no-store header to fetch freshest Google Sheets data
+    const res = await fetch(`${MAIN_VIDEOS_CSV_URL}&t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-cache'
+      }
+    });
     if (!res.ok) throw new Error("Network response was not ok");
     const csvText = await res.text();
     const parsed = parseCSV(csvText);
 
     if (parsed.length > 0) {
-      const mapped = parsed.map((item, index) => {
-        const rawUrl = item.url || item.videourl || item.link || '';
-        const videoId = extractYouTubeId(rawUrl) || 'c8jE2mZMA1Q';
-        const title = item.title || item.name || 'ไม่มีชื่อสารคดี';
-        const description = item.description || item.desc || 'ไม่มีรายละเอียด';
-        const category = item.category || item.group || 'วิดีโอแนะนำ';
-        
-        return {
+      const urlKeys = ['url', 'videourl', 'link', 'youtube', 'video', 'ลิงก์', 'ลิงค์', 'วิดีโอ', 'ลิ้ง', 'ลิ้งค์'];
+      const titleKeys = ['title', 'name', 'header', 'heading', 'ชื่อ', 'ชื่อเรื่อง', 'ชื่อสารคดี', 'หัวข้อ', 'รายการ'];
+      const categoryKeys = ['category', 'group', 'type', 'หมวดหมู่', 'ประเภท', 'กลุ่ม'];
+      const descKeys = ['description', 'desc', 'detail', 'details', 'รายละเอียด', 'คำอธิบาย', 'เรื่องย่อ'];
+
+      const validDocs: Documentary[] = [];
+
+      parsed.forEach((item, index) => {
+        // 1. Locate YouTube video URL
+        let rawUrl = getFieldValue(item, urlKeys);
+
+        // If direct field lookup failed, scan all cell values for YouTube link
+        if (!rawUrl) {
+          for (const val of Object.values(item)) {
+            if (val && (val.toLowerCase().includes('youtube.com') || val.toLowerCase().includes('youtu.be'))) {
+              rawUrl = val.trim();
+              break;
+            }
+          }
+        }
+
+        // Extract YouTube ID
+        const videoId = extractYouTubeId(rawUrl);
+
+        // CRITICAL: If no valid YouTube ID exists (row was deleted in Google Sheets or has no video link), SKIP IT!
+        if (!videoId) {
+          return;
+        }
+
+        // 2. Locate Title
+        let title = getFieldValue(item, titleKeys);
+
+        // Clean leading/trailing punctuation or commas (e.g. ",https://youtube.com...")
+        title = title.replace(/^[,\s"':;]+|[,\s"':;]+$/g, '').trim();
+
+        // If title is a raw URL (e.g. pasted URL into title cell), strip it out
+        if (title.toLowerCase().startsWith('http://') || title.toLowerCase().startsWith('https://') || title.toLowerCase().includes('youtube.com') || title.toLowerCase().includes('youtu.be')) {
+          title = '';
+        }
+
+        // Locate Description & Category
+        const description = getFieldValue(item, descKeys);
+        let category = getFieldValue(item, categoryKeys);
+
+        // Fallback title generation if title cell was left empty in Google Sheets
+        if (!title) {
+          if (description) {
+            title = description.slice(0, 45) + (description.length > 45 ? '...' : '');
+          } else if (category) {
+            title = `สารคดีสัตว์โลก หมวด${category}`;
+          } else {
+            // If title, description, and category are ALL blank, the row was deleted in Google Sheets -> SKIP IT!
+            return;
+          }
+        }
+
+        if (!category) {
+          category = 'วิดีโอแนะนำ';
+        }
+
+        validDocs.push({
           id: `yt_${videoId}_${index}`,
           category: category.trim(),
           title: title.trim(),
@@ -94,12 +177,10 @@ export async function fetchDocumentaries(): Promise<Documentary[]> {
           thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
           videoUrl: rawUrl || `https://www.youtube.com/watch?v=${videoId}`,
           videoId: videoId
-        };
+        });
       });
 
-      // Filter out invalid empty items
-      const valid = mapped.filter(d => d.title.length > 0);
-      if (valid.length > 0) return valid;
+      if (validDocs.length > 0) return validDocs;
     }
   } catch (error) {
     console.warn("Failed to fetch Google Sheet CSV, using fallback data:", error);
@@ -109,31 +190,68 @@ export async function fetchDocumentaries(): Promise<Documentary[]> {
 
 export async function fetchKnowledgeData(): Promise<KnowledgeItem[]> {
   try {
-    const res = await fetch(`${KNOWLEDGE_CSV_URL}&t=${Date.now()}`);
+    const res = await fetch(`${KNOWLEDGE_CSV_URL}&t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-cache'
+      }
+    });
     if (!res.ok) throw new Error("Network response was not ok");
     const csvText = await res.text();
     const parsed = parseCSV(csvText);
 
     if (parsed.length > 0) {
-      const mapped = parsed.map((item, index) => {
-        const title = item.title || item.name || 'ข้อมูลสัตว์โลก';
-        const description = item.description || item.detail || item.desc || '';
-        const thumbnail = item.thumbnail || item.image || item.img || "https://images.unsplash.com/photo-1534567153574-2b12153a87f0?auto=format&fit=crop&q=80&w=600";
-        const linkUrl = item.linkurl || item.link || item.url || "https://sites.google.com/view/zootopiaworld/%E0%B8%AB%E0%B8%99%E0%B8%B2%E0%B9%81%E0%B8%A3%E0%B8%81";
-        const category = item.category || 'ความรู้ทั่วไป';
+      const titleKeys = ['title', 'name', 'header', 'ชื่อ', 'ชื่อสัตว์', 'หัวข้อ', 'เรื่อง'];
+      const descKeys = ['description', 'detail', 'desc', 'รายละเอียด', 'ข้อมูล', 'คำอธิบาย'];
+      const thumbKeys = ['thumbnail', 'image', 'img', 'รูป', 'รูปภาพ', 'ภาพประกอบ'];
+      const linkKeys = ['linkurl', 'link', 'url', 'เว็บไซต์', 'ลิงก์', 'ลิงค์'];
+      const categoryKeys = ['category', 'group', 'หมวดหมู่', 'ประเภท'];
 
-        return {
+      const validItems: KnowledgeItem[] = [];
+
+      parsed.forEach((item, index) => {
+        let title = getFieldValue(item, titleKeys);
+        title = title.replace(/^[,\s"':;]+|[,\s"':;]+$/g, '').trim();
+
+        let description = getFieldValue(item, descKeys);
+        description = description.replace(/^[,\s"':;]+|[,\s"':;]+$/g, '').trim();
+
+        // If both title and description are empty, row was deleted in Google Sheets -> SKIP IT!
+        if (!title && !description) {
+          return;
+        }
+
+        if (!title) {
+          title = description.slice(0, 40) + '...';
+        }
+
+        let thumbnail = getFieldValue(item, thumbKeys);
+        if (!thumbnail || thumbnail.toLowerCase().startsWith('http') === false) {
+          thumbnail = "https://images.unsplash.com/photo-1534567153574-2b12153a87f0?auto=format&fit=crop&q=80&w=600";
+        }
+
+        let linkUrl = getFieldValue(item, linkKeys);
+        if (!linkUrl || linkUrl.toLowerCase().startsWith('http') === false) {
+          linkUrl = "https://sites.google.com/view/zootopiaworld/%E0%B8%AB%E0%B8%99%E0%B8%B2%E0%B9%81%E0%B8%A3%E0%B8%81";
+        }
+
+        let category = getFieldValue(item, categoryKeys);
+        if (!category) {
+          category = 'ความรู้ทั่วไป';
+        }
+
+        validItems.push({
           id: `k_${index}`,
           title: title.trim(),
           description: description.trim(),
           thumbnail: thumbnail.trim(),
           linkUrl: linkUrl.trim(),
           category: category.trim()
-        };
+        });
       });
 
-      const valid = mapped.filter(k => k.title.length > 0);
-      if (valid.length > 0) return valid;
+      if (validItems.length > 0) return validItems;
     }
   } catch (error) {
     console.warn("Failed to fetch knowledge CSV, using fallback data:", error);

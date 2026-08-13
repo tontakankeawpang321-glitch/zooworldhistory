@@ -6,7 +6,7 @@ import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
     // กำหนด base path ตามชื่อ repository ของคุณ
-    base: '/saya-io/', 
+    base: '/zooworldhistory/', 
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

@@ -24,15 +24,29 @@ export function getDailyBackgroundImage(): string {
 }
 
 /**
- * Extracts YouTube Video ID from various URL formats
+ * Extracts YouTube Video ID from various URL formats safely
  */
-export function extractYouTubeId(url: string | undefined): string | null {
+export function extractYouTubeId(url: string | undefined | null): string | null {
   if (!url) return null;
-  if (url.includes('videoseries') || url.includes('/playlist?')) return null;
   
-  const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/|live\/)|youtu\.be\/)([^"&?\/\s]{11})/i;
-  const match = url.match(regExp);
-  return match ? match[1] : null;
+  // Clean string from leading/trailing commas, quotes, spaces, brackets
+  const cleaned = String(url).trim().replace(/^[,\s"':;()<>{}\[\]]+|[,\s"':;()<>{}\[\]]+$/g, '');
+  if (!cleaned) return null;
+  if (cleaned.includes('videoseries') || cleaned.includes('/playlist?')) return null;
+
+  // Regex for YouTube video IDs (11 chars) across watch?v=, shorts/, live/, embed/, youtu.be/
+  const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/|live\/)|youtu\.be\/)([^"&?\/\s,#]{11})/i;
+  const match = cleaned.match(regExp);
+  if (match && match[1] && match[1].length === 11) {
+    return match[1];
+  }
+
+  // Fallback: If cleaned string itself is directly an 11-char video ID (e.g. "c8jE2mZMA1Q")
+  if (/^[a-zA-Z0-9_-]{11}$/.test(cleaned)) {
+    return cleaned;
+  }
+
+  return null;
 }
 
 /**
@@ -45,11 +59,18 @@ export function parseCSV(str: string): Record<string, string>[] {
   const lines = str.split(/\r?\n/);
   if (lines.length < 2) return result;
 
-  const headers = lines[0].split(',').map((h) => h.trim().toLowerCase().replace(/^"|"$/g, ''));
+  // Clean headers: remove quotes, spaces, leading/trailing commas
+  const headers = lines[0].split(',').map((h) => 
+    h.trim().toLowerCase().replace(/^["'\s,]+|["'\s,]+$/g, '')
+  );
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
+
+    // Skip line if it contains only commas and spaces (deleted rows in Google Sheets)
+    const cleanLine = line.replace(/,/g, '').trim();
+    if (!cleanLine) continue;
 
     const values: string[] = [];
     let inQuotes = false;
@@ -74,15 +95,21 @@ export function parseCSV(str: string): Record<string, string>[] {
     values.push(currentValue.trim());
 
     const obj: Record<string, string> = {};
+    let hasNonEmptyField = false;
+
     headers.forEach((header, index) => {
-      // Clean up surrounding quotes
       let val = values[index] || '';
-      if (val.startsWith('"') && val.endsWith('"')) {
-        val = val.substring(1, val.length - 1);
+      // Clean quotes
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.substring(1, val.length - 1).trim();
       }
+      if (val) hasNonEmptyField = true;
       obj[header] = val;
     });
-    result.push(obj);
+
+    if (hasNonEmptyField) {
+      result.push(obj);
+    }
   }
 
   return result;
